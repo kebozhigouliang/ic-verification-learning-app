@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { getLearningDay, initialLearningSelection, weeks } from "@/data/weeks";
 import type { LearningDay } from "@/types/learning";
 import type { TaskProgress, TaskStatus } from "@/types/progress";
 
@@ -20,7 +21,11 @@ function createInitialDayProgress(day: LearningDay): DayTaskProgress {
   );
 }
 
-export function useLearningProgress(day: LearningDay | undefined) {
+export function useLearningProgress() {
+  const [currentWeek] = useState<number>(initialLearningSelection.week);
+  const [currentDay, setCurrentDay] = useState<number>(initialLearningSelection.day);
+  const day = getLearningDay(currentWeek, currentDay);
+  const availableDays = weeks[currentWeek]?.days.map((learningDay) => learningDay.day) ?? [];
   const [sessionProgress, setSessionProgress] = useState<SessionTaskProgress>(() => (
     day ? { [day.id]: createInitialDayProgress(day) } : {}
   ));
@@ -67,5 +72,29 @@ export function useLearningProgress(day: LearningDay | undefined) {
     }));
   }, [day]);
 
-  return { getTaskStatus, updateTaskStatus };
+  const selectDay = useCallback((dayNumber: number) => {
+    const selectedDay = getLearningDay(currentWeek, dayNumber);
+    if (selectedDay) setCurrentDay(selectedDay.day);
+  }, [currentWeek]);
+
+  const previousDay = getLearningDay(currentWeek, currentDay - 1);
+  const nextDay = getLearningDay(currentWeek, currentDay + 1);
+
+  return {
+    availableDays,
+    canGoNext: nextDay !== undefined,
+    canGoPrevious: previousDay !== undefined,
+    currentDay,
+    currentLearningDay: day,
+    currentWeek,
+    getTaskStatus,
+    goToNextDay: () => {
+      if (nextDay) setCurrentDay(nextDay.day);
+    },
+    goToPreviousDay: () => {
+      if (previousDay) setCurrentDay(previousDay.day);
+    },
+    selectDay,
+    updateTaskStatus,
+  };
 }

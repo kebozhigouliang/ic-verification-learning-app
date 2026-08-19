@@ -5,11 +5,15 @@ import type { TaskStatus } from "@/types/progress";
 import { calculateTaskProgress } from "@/utils/progress";
 
 interface TodayPageProps {
+  availableDays: readonly number[];
+  canGoPrevious: boolean;
+  canGoNext: boolean;
   day: LearningDay;
   getTaskStatus: (taskId: string) => TaskStatus;
   updateTaskStatus: (taskId: string, status: TaskStatus) => void;
-  onPreviousDay?: () => void;
-  onNextDay?: () => void;
+  onSelectDay: (day: number) => void;
+  onPreviousDay: () => void;
+  onNextDay: () => void;
 }
 
 function formatCode(prefix: string, value: number) {
@@ -44,9 +48,13 @@ function TaskStatusSelect({ taskTitle, value, onChange }: TaskStatusSelectProps)
 }
 
 export function TodayPage({
+  availableDays,
+  canGoPrevious,
+  canGoNext,
   day,
   getTaskStatus,
   updateTaskStatus,
+  onSelectDay,
   onPreviousDay,
   onNextDay,
 }: TodayPageProps) {
@@ -80,11 +88,21 @@ export function TodayPage({
         </div>
         <span className={`status-badge status-${dayStatus}`}>{dayStatus.toUpperCase()}</span>
       </header>
-      <nav className="day-navigation" aria-label="学习日切换">
-        <button disabled={!onPreviousDay} onClick={onPreviousDay} type="button">← PREVIOUS DAY</button>
-        <span>{weekCode} / {dayCode}</span>
-        <button disabled={!onNextDay} onClick={onNextDay} type="button">NEXT DAY →</button>
-      </nav>
+      <section className="day-selector" aria-label="Day Selector">
+        <div>
+          <span>DAY SELECTOR</span>
+          <strong>{weekCode} / {dayCode}</strong>
+        </div>
+        <select
+          aria-label="Select learning day"
+          onChange={(event) => onSelectDay(Number(event.target.value))}
+          value={day.day}
+        >
+          {availableDays.map((dayNumber) => (
+            <option key={dayNumber} value={dayNumber}>Day {dayNumber}</option>
+          ))}
+        </select>
+      </section>
       <section className="summary-panel" aria-label="今日学习概览">
         <div><span>ESTIMATED</span><strong>{estimatedTime}</strong></div>
         <div><span>TASK PROGRESS</span><strong>{taskProgress.passed} / {taskProgress.total} · {taskProgress.percentage}%</strong></div>
@@ -133,7 +151,12 @@ export function TodayPage({
           <article className="task-row criterion-row" key={item.id}><span className="task-marker" aria-hidden="true" /><h2>{item.label}</h2></article>
         ))}
       </Section>
-      <p className="scope-note">MILESTONE 2.1 · SESSION TASK STATUS</p>
+      <nav className="day-step-navigation" aria-label="Previous and next learning day">
+        <button disabled={!canGoPrevious} onClick={onPreviousDay} type="button">← PREVIOUS DAY</button>
+        <span>{weekCode} / {dayCode}</span>
+        <button disabled={!canGoNext} onClick={onNextDay} type="button">NEXT DAY →</button>
+      </nav>
+      <p className="scope-note">MILESTONE 2.2 · SESSION DAY MANAGEMENT</p>
     </AppShell>
   );
 }
