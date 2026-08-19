@@ -190,9 +190,69 @@ h1 { max-width: 520px; margin: 0; font-size: clamp(1.35rem, 6vw, 2rem); line-hei
 .operation-message.success { color: var(--accent); }
 .operation-message.error { color: #fca5a5; }
 .operation-message.neutral { color: var(--muted); }
+.notes-toolbar { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; margin-bottom: 18px; align-items: end; }
+.note-type-filters { display: flex; gap: 6px; grid-column: 1 / -1; flex-wrap: wrap; }
+.note-type-filters button, .add-note-button, .note-editor button, .note-card-actions button, .question-status { min-height: 36px; padding: 8px 10px; border: 1px solid var(--line-strong); background: var(--surface); color: var(--muted); font: 650 .57rem/1 var(--font-code); letter-spacing: .06em; cursor: pointer; }
+.note-type-filters button.active { border-color: var(--accent); color: var(--accent); }
+.note-type-filters button:hover, .note-type-filters button:focus-visible, .add-note-button:hover, .add-note-button:focus-visible, .note-editor button:hover, .note-editor button:focus-visible, .note-card-actions button:hover, .note-card-actions button:focus-visible, .question-status:hover, .question-status:focus-visible { border-color: var(--accent); color: var(--accent); outline: none; }
+.note-date-filter { display: grid; gap: 6px; }
+.note-date-filter span, .note-field > span { color: var(--faint); font: 600 .56rem/1 var(--font-code); letter-spacing: .08em; }
+.note-date-filter input, .note-field input, .note-field select, .note-field textarea { width: 100%; min-width: 0; border: 1px solid var(--line-strong); border-radius: 0; background: var(--bg); color: var(--text); font: 500 .72rem/1.5 var(--font-code); }
+.note-date-filter input { min-height: 36px; padding: 7px 9px; color-scheme: dark; }
+[data-theme="light"] .note-date-filter input { color-scheme: light; }
+.add-note-button { min-width: 124px; background: color-mix(in srgb, var(--accent) 8%, var(--surface)); color: var(--accent); }
+.note-editor { margin-bottom: 20px; border: 1px solid var(--line-strong); background: var(--surface); }
+.note-editor > header { display: flex; padding: 14px 15px; border-bottom: 1px solid var(--line); align-items: center; justify-content: space-between; }
+.note-editor > header p { margin: 0 0 6px; color: var(--faint); font: 600 .54rem/1 var(--font-code); letter-spacing: .08em; }
+.note-editor > header h2 { margin: 0; color: var(--accent); font: 650 .74rem/1 var(--font-code); letter-spacing: .1em; }
+.note-editor form { display: grid; gap: 14px; padding: 15px; }
+.note-field { display: grid; gap: 7px; }
+.note-field small { margin-left: 6px; color: var(--faint); font: inherit; }
+.note-field input, .note-field select { min-height: 38px; padding: 8px 10px; }
+.note-field textarea { min-height: 88px; padding: 9px 10px; resize: vertical; }
+.note-field input:focus, .note-field select:focus, .note-field textarea:focus { border-color: var(--accent); outline: 1px solid var(--accent); outline-offset: 1px; }
+.note-field select:disabled { cursor: not-allowed; opacity: .6; }
+.bug-note-fields { display: grid; gap: 14px; }
+.note-form-actions { display: flex; gap: 8px; justify-content: flex-end; }
+.note-form-actions .primary { border-color: var(--accent); color: var(--accent); }
+.note-form-error, .note-page-message { margin: 0; color: #fca5a5; font: 550 .67rem/1.5 var(--font-code); }
+.note-page-message { margin-bottom: 14px; padding: 11px 12px; border: 1px solid color-mix(in srgb, #ef4444 45%, var(--line)); background: var(--surface); }
+.notes-list { display: grid; gap: 14px; }
+.notes-empty { padding: 38px 20px; border: 1px dashed var(--line-strong); background: var(--surface); text-align: center; }
+.notes-empty span { color: var(--accent); font: 650 .6rem/1 var(--font-code); letter-spacing: .1em; }
+.notes-empty h2 { margin: 13px 0 7px; font-size: .98rem; }
+.notes-empty p { margin: 0; color: var(--muted); font-size: .76rem; line-height: 1.5; }
+.note-card { border: 1px solid var(--line); border-left: 2px solid var(--line-strong); background: var(--surface); }
+.note-card.note-question { border-left-color: #60a5fa; }
+.note-card.note-bug { border-left-color: #f59e0b; }
+.note-card.note-note { border-left-color: var(--accent); }
+.note-card > header { display: flex; gap: 12px; padding: 12px 14px; border-bottom: 1px solid var(--line); align-items: center; justify-content: space-between; }
+.note-card > header > div:first-child { display: flex; gap: 10px; align-items: center; }
+.note-type { color: var(--accent); font: 700 .59rem/1 var(--font-code); letter-spacing: .09em; }
+.note-question .note-type { color: #93c5fd; }
+.note-bug .note-type { color: #fbbf24; }
+.note-card time { color: var(--faint); font: 550 .56rem/1 var(--font-code); }
+.note-card-actions { display: flex; gap: 6px; }
+.note-card-actions button { min-height: 30px; padding: 6px 8px; font-size: .52rem; }
+.note-card-actions .delete:hover, .note-card-actions .delete:focus-visible { border-color: #ef4444; color: #fca5a5; }
+.note-content { margin: 0; padding: 16px 14px; color: var(--text); font-size: .82rem; line-height: 1.65; white-space: pre-wrap; overflow-wrap: anywhere; }
+.question-status { margin: 0 14px 14px; min-height: 32px; font-size: .53rem; }
+.question-status.resolved { border-color: var(--accent); color: var(--accent); }
+.bug-note-details { display: grid; grid-template-columns: 110px minmax(0, 1fr); margin: 0; }
+.bug-note-details dt, .bug-note-details dd { margin: 0; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+.bug-note-details dt { color: var(--faint); font: 650 .55rem/1.4 var(--font-code); letter-spacing: .07em; }
+.bug-note-details dd { color: var(--muted); font-size: .77rem; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; }
+.bug-note-details dt:last-of-type, .bug-note-details dd:last-of-type { border-bottom: 0; }
 .visually-hidden { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; border: 0 !important; }
 
 @media (max-width: 420px) {
+  .notes-toolbar { grid-template-columns: 1fr; }
+  .note-date-filter, .add-note-button { width: 100%; }
+  .note-card > header { align-items: flex-start; }
+  .note-card > header > div:first-child { display: grid; gap: 6px; }
+  .bug-note-details { grid-template-columns: 1fr; }
+  .bug-note-details dt { padding-bottom: 4px; border-bottom: 0; }
+  .bug-note-details dd { padding-top: 4px; }
   .data-action { grid-template-columns: 1fr; }
   .data-action button { width: 100%; }
   .study-time-grid { grid-template-columns: 1fr; }

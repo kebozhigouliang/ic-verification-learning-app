@@ -42,7 +42,11 @@ function validateImportEnvelope(value: unknown): asserts value is Record<string,
     );
   }
 
-  if (value.schemaVersion !== CURRENT_SCHEMA_VERSION) {
+  if (
+    typeof value.schemaVersion !== "number"
+    || value.schemaVersion < 1
+    || value.schemaVersion > CURRENT_SCHEMA_VERSION
+  ) {
     throw new AppDataImportError(
       "UNSUPPORTED_VERSION",
       `Unsupported backup schema version: ${String(value.schemaVersion)}.`,

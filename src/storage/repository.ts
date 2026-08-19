@@ -55,7 +55,12 @@ export function saveAppData(data: AppData): AppData {
 }
 
 export function resetAppData(): AppData {
-  return saveAppData(createDefaultAppData());
+  const currentData = loadAppData();
+  const defaultData = createDefaultAppData();
+  return saveAppData({
+    ...defaultData,
+    notes: currentData.notes,
+  });
 }
 
 export function clearAppData(): void {

@@ -90,10 +90,11 @@ export function useLearningProgress() {
 
   useEffect(() => {
     try {
+      const latestAppData = loadAppData();
       saveAppData({
-        ...appDataBase,
+        ...latestAppData,
         progress: {
-          ...appDataBase.progress,
+          ...latestAppData.progress,
           currentWeek,
           currentDay,
           days: dayProgressById,

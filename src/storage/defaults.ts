@@ -1,7 +1,7 @@
 import type { AppData } from "@/types/app-data";
 import type { LearningProgress } from "@/types/progress";
 
-export const CURRENT_SCHEMA_VERSION = 1;
+export const CURRENT_SCHEMA_VERSION = 2;
 
 export function createDefaultProgress(): LearningProgress {
   return {
@@ -21,5 +21,6 @@ export function createDefaultAppData(now = new Date()): AppData {
       theme: "system",
     },
     progress: createDefaultProgress(),
+    notes: [],
   };
 }

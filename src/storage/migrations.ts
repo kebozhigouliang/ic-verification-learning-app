@@ -1,5 +1,6 @@
 import { createDefaultAppData, CURRENT_SCHEMA_VERSION } from "@/storage/defaults";
 import type { AppData, ThemeSetting } from "@/types/app-data";
+import type { BugNote, NormalNote, NoteEntry, QuestionNote } from "@/types/notes";
 import type {
   CheckpointResult,
   DailyStudyTime,
@@ -134,6 +135,78 @@ function normalizeTheme(value: unknown, fallback: ThemeSetting): ThemeSetting {
     : fallback;
 }
 
+function hasNoteBase(value: Record<string, unknown>): boolean {
+  return typeof value.id === "string"
+    && typeof value.date === "string"
+    && typeof value.createdAt === "string"
+    && typeof value.updatedAt === "string";
+}
+
+function normalizeNote(value: unknown): NoteEntry | undefined {
+  if (!isRecord(value) || !hasNoteBase(value)) return undefined;
+
+  if (value.type === "question" && typeof value.content === "string") {
+    const note: QuestionNote = {
+      id: value.id as string,
+      type: "question",
+      date: value.date as string,
+      content: value.content,
+      resolved: typeof value.resolved === "boolean" ? value.resolved : false,
+      createdAt: value.createdAt as string,
+      updatedAt: value.updatedAt as string,
+    };
+    return note;
+  }
+
+  if (value.type === "note" && typeof value.content === "string") {
+    const note: NormalNote = {
+      id: value.id as string,
+      type: "note",
+      date: value.date as string,
+      content: value.content,
+      createdAt: value.createdAt as string,
+      updatedAt: value.updatedAt as string,
+    };
+    return note;
+  }
+
+  if (
+    value.type === "bug"
+    && typeof value.symptom === "string"
+    && typeof value.rootCause === "string"
+    && typeof value.solution === "string"
+    && typeof value.learned === "string"
+  ) {
+    const note: BugNote = {
+      id: value.id as string,
+      type: "bug",
+      date: value.date as string,
+      symptom: value.symptom,
+      rootCause: value.rootCause,
+      solution: value.solution,
+      learned: value.learned,
+      createdAt: value.createdAt as string,
+      updatedAt: value.updatedAt as string,
+    };
+    if (typeof value.projectId === "string") note.projectId = value.projectId;
+    return note;
+  }
+
+  return undefined;
+}
+
+function normalizeNotes(value: unknown): NoteEntry[] {
+  if (!Array.isArray(value)) return [];
+  const seenIds = new Set<string>();
+
+  return value.flatMap((rawNote) => {
+    const note = normalizeNote(rawNote);
+    if (!note || seenIds.has(note.id)) return [];
+    seenIds.add(note.id);
+    return [note];
+  });
+}
+
 export function migrateAppData(value: unknown): AppData {
   const defaults = createDefaultAppData();
   if (!isRecord(value)) return defaults;
@@ -146,5 +219,6 @@ export function migrateAppData(value: unknown): AppData {
       theme: normalizeTheme(settings.theme, defaults.settings.theme),
     },
     progress: normalizeProgress(value.progress, defaults.progress),
+    notes: normalizeNotes(value.notes),
   };
 }

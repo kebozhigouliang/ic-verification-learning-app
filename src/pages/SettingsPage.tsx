@@ -81,7 +81,7 @@ export function SettingsPage({ onDataImported, onResetProgress }: SettingsPagePr
       <PageIntro
         code="SETTINGS / LOCAL DATA"
         title="设置"
-        description="备份或恢复这台设备上的学习进度。"
+        description="备份或恢复这台设备上的学习数据。"
       />
       <section className="data-management" aria-labelledby="data-management-title">
         <header>
@@ -114,7 +114,7 @@ export function SettingsPage({ onDataImported, onResetProgress }: SettingsPagePr
         <div className="data-action danger-action">
           <div>
             <h3>Reset Progress</h3>
-            <p>Restore the default Day, Task, Mastery, Study Time, and settings data.</p>
+            <p>Restore Day, Task, Mastery, Study Time, and settings. Notes are kept.</p>
           </div>
           <button
             disabled={isResetting}
@@ -134,7 +134,7 @@ export function SettingsPage({ onDataImported, onResetProgress }: SettingsPagePr
             role="alertdialog"
           >
             <h3 id="reset-confirmation-title">Reset all learning progress?</h3>
-            <p id="reset-confirmation-description">Your tasks, mastery status and study time will be cleared.</p>
+            <p id="reset-confirmation-description">Your tasks, mastery status and study time will be cleared. Notes will be kept.</p>
             <div>
               <button
                 disabled={isResetting}
@@ -150,7 +150,7 @@ export function SettingsPage({ onDataImported, onResetProgress }: SettingsPagePr
             </div>
           </section>
         ) : null}
-        <p className="data-warning">Import replaces Task, Mastery, Study Time, and current Day data after confirmation.</p>
+        <p className="data-warning">Import replaces Task, Mastery, Study Time, current Day, and Notes data after confirmation.</p>
         {message ? <p className={`operation-message ${message.kind}`} role={message.kind === "error" ? "alert" : "status"}>{message.text}</p> : null}
       </section>
     </AppShell>
