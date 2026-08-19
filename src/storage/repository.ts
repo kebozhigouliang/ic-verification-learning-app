@@ -26,9 +26,8 @@ export function loadAppData(): AppData {
   }
 }
 
-export function saveAppData(data: AppData): void {
+export function saveAppData(data: AppData): AppData {
   const storage = getStorage();
-  if (!storage) return;
 
   const nextData: AppData = {
     ...data,
@@ -36,11 +35,14 @@ export function saveAppData(data: AppData): void {
     updatedAt: new Date().toISOString(),
   };
 
+  if (!storage) return nextData;
+
   try {
     storage.setItem(STORAGE_KEY, JSON.stringify(nextData));
   } catch {
     // Storage can be unavailable or full. The in-memory session remains usable.
   }
+  return nextData;
 }
 
 export function clearAppData(): void {

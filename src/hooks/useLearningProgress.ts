@@ -58,26 +58,26 @@ function mergeDayProgress(day: LearningDay, current?: DayProgress): DayProgress 
 }
 
 export function useLearningProgress() {
-  const [loadedAppData] = useState(loadAppData);
+  const [appDataBase, setAppDataBase] = useState(loadAppData);
   const storedDay = getLearningDay(
-    loadedAppData.progress.currentWeek,
-    loadedAppData.progress.currentDay,
+    appDataBase.progress.currentWeek,
+    appDataBase.progress.currentDay,
   );
   const initialPosition = storedDay
     ? { week: storedDay.week, day: storedDay.day }
     : initialLearningSelection;
 
-  const [currentWeek] = useState<number>(initialPosition.week);
+  const [currentWeek, setCurrentWeek] = useState<number>(initialPosition.week);
   const [currentDay, setCurrentDay] = useState<number>(initialPosition.day);
   const day = getLearningDay(currentWeek, currentDay);
   const availableDays = weeks[currentWeek]?.days.map((learningDay) => learningDay.day) ?? [];
   const [dayProgressById, setDayProgressById] = useState<Record<string, DayProgress>>(() => (
     day
       ? {
-        ...loadedAppData.progress.days,
-        [day.id]: mergeDayProgress(day, loadedAppData.progress.days[day.id]),
+        ...appDataBase.progress.days,
+        [day.id]: mergeDayProgress(day, appDataBase.progress.days[day.id]),
       }
-      : loadedAppData.progress.days
+      : appDataBase.progress.days
   ));
 
   useEffect(() => {
@@ -90,15 +90,15 @@ export function useLearningProgress() {
 
   useEffect(() => {
     saveAppData({
-      ...loadedAppData,
+      ...appDataBase,
       progress: {
-        ...loadedAppData.progress,
+        ...appDataBase.progress,
         currentWeek,
         currentDay,
         days: dayProgressById,
       },
     });
-  }, [currentDay, currentWeek, dayProgressById, loadedAppData]);
+  }, [appDataBase, currentDay, currentWeek, dayProgressById]);
 
   const getTaskStatus = useCallback((taskId: string): TaskStatus => {
     if (!day) return "todo";
@@ -171,6 +171,27 @@ export function useLearningProgress() {
     if (selectedDay) setCurrentDay(selectedDay.day);
   }, [currentWeek]);
 
+  const replaceAppData = useCallback((nextData: typeof appDataBase) => {
+    const importedDay = getLearningDay(
+      nextData.progress.currentWeek,
+      nextData.progress.currentDay,
+    );
+    const nextPosition = importedDay
+      ? { week: importedDay.week, day: importedDay.day }
+      : initialLearningSelection;
+    const nextDays = importedDay
+      ? {
+        ...nextData.progress.days,
+        [importedDay.id]: mergeDayProgress(importedDay, nextData.progress.days[importedDay.id]),
+      }
+      : nextData.progress.days;
+
+    setAppDataBase(nextData);
+    setCurrentWeek(nextPosition.week);
+    setCurrentDay(nextPosition.day);
+    setDayProgressById(nextDays);
+  }, []);
+
   const previousDay = getLearningDay(currentWeek, currentDay - 1);
   const nextDay = getLearningDay(currentWeek, currentDay + 1);
   const studyTime = day
@@ -192,6 +213,7 @@ export function useLearningProgress() {
     goToPreviousDay: () => {
       if (previousDay) setCurrentDay(previousDay.day);
     },
+    replaceAppData,
     selectDay,
     studyTime,
     togglePassCriterion,

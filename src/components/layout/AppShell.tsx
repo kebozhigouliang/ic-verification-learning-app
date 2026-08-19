@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-export type PageId = "today" | "roadmap" | "projects" | "notes" | "progress";
+export type PageId = "today" | "roadmap" | "projects" | "notes" | "progress" | "settings";
 
 interface AppShellProps { activePage: PageId; children: ReactNode; }
 
@@ -10,6 +10,7 @@ const navigation: Array<{ id: PageId; href: string; label: string }> = [
   { id: "projects", href: "#/projects", label: "PROJECTS" },
   { id: "notes", href: "#/notes", label: "NOTES" },
   { id: "progress", href: "#/progress", label: "PROGRESS" },
+  { id: "settings", href: "#/settings", label: "SETTINGS" },
 ];
 
 export function AppShell({ activePage, children }: AppShellProps) {

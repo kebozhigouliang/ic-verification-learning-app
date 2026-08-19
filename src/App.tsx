@@ -7,6 +7,7 @@ import { NotesPage } from "@/pages/NotesPage";
 import { ProgressPage } from "@/pages/ProgressPage";
 import { ProjectsPage } from "@/pages/ProjectsPage";
 import { RoadmapPage } from "@/pages/RoadmapPage";
+import { SettingsPage } from "@/pages/SettingsPage";
 import { TodayPage } from "@/pages/TodayPage";
 
 const routePages: Record<string, PageId> = {
@@ -15,6 +16,7 @@ const routePages: Record<string, PageId> = {
   "/projects": "projects",
   "/notes": "notes",
   "/progress": "progress",
+  "/settings": "settings",
 };
 
 function getPageFromHash(): PageId {
@@ -33,6 +35,7 @@ export function App() {
     getTaskStatus,
     goToNextDay,
     goToPreviousDay,
+    replaceAppData,
     selectDay,
     studyTime,
     togglePassCriterion,
@@ -51,6 +54,14 @@ export function App() {
     case "projects": return <ProjectsPage />;
     case "notes": return <NotesPage />;
     case "progress": return <ProgressPage />;
+    case "settings": return (
+      <SettingsPage
+        onDataImported={(data) => {
+          replaceAppData(data);
+          window.location.hash = "#/";
+        }}
+      />
+    );
     default: return currentLearningDay
       ? (
         <TodayPage
