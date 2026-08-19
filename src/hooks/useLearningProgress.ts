@@ -1,18 +1,15 @@
 import { useCallback, useEffect, useState } from "react";
 import { getLearningDay, initialLearningSelection, weeks } from "@/data/weeks";
+import { loadAppData, saveAppData } from "@/storage/repository";
 import type { LearningDay } from "@/types/learning";
 import type {
   DailyStudyTime,
+  DayProgress,
   MasteryProgress,
   StudyCategory,
   TaskProgress,
   TaskStatus,
 } from "@/types/progress";
-
-type DayTaskProgress = Record<string, TaskProgress>;
-type SessionTaskProgress = Record<string, DayTaskProgress>;
-type SessionMasteryProgress = Record<string, MasteryProgress>;
-type SessionStudyTime = Record<string, DailyStudyTime>;
 
 function getTaskIds(day: LearningDay): string[] {
   return [
@@ -23,7 +20,7 @@ function getTaskIds(day: LearningDay): string[] {
   ].map((task) => task.id);
 }
 
-function createInitialDayProgress(day: LearningDay): DayTaskProgress {
+function createInitialTaskStates(day: LearningDay): Record<string, TaskProgress> {
   return Object.fromEntries(
     getTaskIds(day).map((taskId) => [taskId, { status: "todo" }]),
   );
@@ -39,115 +36,134 @@ function createInitialStudyTime(): DailyStudyTime {
   return { learn: 0, practice: 0, build: 0, debug: 0 };
 }
 
+function createInitialDayProgress(day: LearningDay): DayProgress {
+  return {
+    taskStates: createInitialTaskStates(day),
+    passCriteria: createInitialMasteryProgress(day),
+    studyTime: createInitialStudyTime(),
+  };
+}
+
+function mergeDayProgress(day: LearningDay, current?: DayProgress): DayProgress {
+  const defaults = createInitialDayProgress(day);
+  if (!current) return defaults;
+
+  return {
+    ...defaults,
+    ...current,
+    taskStates: { ...defaults.taskStates, ...current.taskStates },
+    passCriteria: { ...defaults.passCriteria, ...current.passCriteria },
+    studyTime: { ...defaults.studyTime, ...current.studyTime },
+  };
+}
+
 export function useLearningProgress() {
-  const [currentWeek] = useState<number>(initialLearningSelection.week);
-  const [currentDay, setCurrentDay] = useState<number>(initialLearningSelection.day);
+  const [loadedAppData] = useState(loadAppData);
+  const storedDay = getLearningDay(
+    loadedAppData.progress.currentWeek,
+    loadedAppData.progress.currentDay,
+  );
+  const initialPosition = storedDay
+    ? { week: storedDay.week, day: storedDay.day }
+    : initialLearningSelection;
+
+  const [currentWeek] = useState<number>(initialPosition.week);
+  const [currentDay, setCurrentDay] = useState<number>(initialPosition.day);
   const day = getLearningDay(currentWeek, currentDay);
   const availableDays = weeks[currentWeek]?.days.map((learningDay) => learningDay.day) ?? [];
-  const [sessionProgress, setSessionProgress] = useState<SessionTaskProgress>(() => (
-    day ? { [day.id]: createInitialDayProgress(day) } : {}
-  ));
-  const [sessionMastery, setSessionMastery] = useState<SessionMasteryProgress>(() => (
-    day ? { [day.id]: createInitialMasteryProgress(day) } : {}
-  ));
-  const [sessionStudyTime, setSessionStudyTime] = useState<SessionStudyTime>(() => (
-    day ? { [day.id]: createInitialStudyTime() } : {}
+  const [dayProgressById, setDayProgressById] = useState<Record<string, DayProgress>>(() => (
+    day
+      ? {
+        ...loadedAppData.progress.days,
+        [day.id]: mergeDayProgress(day, loadedAppData.progress.days[day.id]),
+      }
+      : loadedAppData.progress.days
   ));
 
   useEffect(() => {
     if (!day) return;
-
-    setSessionProgress((current) => {
-      const currentDayProgress = current[day.id] ?? {};
-      const initialDayProgress = createInitialDayProgress(day);
-      const hasMissingTasks = Object.keys(initialDayProgress).some(
-        (taskId) => currentDayProgress[taskId] === undefined,
-      );
-
-      if (current[day.id] && !hasMissingTasks) return current;
-
-      return {
-        ...current,
-        [day.id]: {
-          ...initialDayProgress,
-          ...currentDayProgress,
-        },
-      };
-    });
-
-    setSessionMastery((current) => {
-      const currentDayMastery = current[day.id] ?? {};
-      const initialDayMastery = createInitialMasteryProgress(day);
-      const hasMissingCriteria = Object.keys(initialDayMastery).some(
-        (criterionId) => currentDayMastery[criterionId] === undefined,
-      );
-
-      if (current[day.id] && !hasMissingCriteria) return current;
-
-      return {
-        ...current,
-        [day.id]: {
-          ...initialDayMastery,
-          ...currentDayMastery,
-        },
-      };
-    });
-
-    setSessionStudyTime((current) => (
-      current[day.id]
-        ? current
-        : { ...current, [day.id]: createInitialStudyTime() }
-    ));
+    setDayProgressById((current) => ({
+      ...current,
+      [day.id]: mergeDayProgress(day, current[day.id]),
+    }));
   }, [day]);
+
+  useEffect(() => {
+    saveAppData({
+      ...loadedAppData,
+      progress: {
+        ...loadedAppData.progress,
+        currentWeek,
+        currentDay,
+        days: dayProgressById,
+      },
+    });
+  }, [currentDay, currentWeek, dayProgressById, loadedAppData]);
 
   const getTaskStatus = useCallback((taskId: string): TaskStatus => {
     if (!day) return "todo";
-    return sessionProgress[day.id]?.[taskId]?.status ?? "todo";
-  }, [day, sessionProgress]);
+    return dayProgressById[day.id]?.taskStates[taskId]?.status ?? "todo";
+  }, [day, dayProgressById]);
 
   const updateTaskStatus = useCallback((taskId: string, status: TaskStatus) => {
     if (!day) return;
-
-    setSessionProgress((current) => ({
-      ...current,
-      [day.id]: {
-        ...current[day.id],
-        [taskId]: {
-          ...current[day.id]?.[taskId],
-          status,
+    setDayProgressById((current) => {
+      const currentDayProgress = mergeDayProgress(day, current[day.id]);
+      return {
+        ...current,
+        [day.id]: {
+          ...currentDayProgress,
+          taskStates: {
+            ...currentDayProgress.taskStates,
+            [taskId]: {
+              ...currentDayProgress.taskStates[taskId],
+              status,
+            },
+          },
         },
-      },
-    }));
+      };
+    });
   }, [day]);
 
   const getPassCriterionState = useCallback((criterionId: string): boolean => {
     if (!day) return false;
-    return sessionMastery[day.id]?.[criterionId] ?? false;
-  }, [day, sessionMastery]);
+    return dayProgressById[day.id]?.passCriteria[criterionId] ?? false;
+  }, [day, dayProgressById]);
 
   const togglePassCriterion = useCallback((criterionId: string) => {
     if (!day) return;
-
-    setSessionMastery((current) => ({
-      ...current,
-      [day.id]: {
-        ...current[day.id],
-        [criterionId]: !(current[day.id]?.[criterionId] ?? false),
-      },
-    }));
+    setDayProgressById((current) => {
+      const currentDayProgress = mergeDayProgress(day, current[day.id]);
+      return {
+        ...current,
+        [day.id]: {
+          ...currentDayProgress,
+          passCriteria: {
+            ...currentDayProgress.passCriteria,
+            [criterionId]: !currentDayProgress.passCriteria[criterionId],
+          },
+        },
+      };
+    });
   }, [day]);
 
   const updateStudyTime = useCallback((category: StudyCategory, minutes: number) => {
     if (!day || !Number.isFinite(minutes)) return;
     const safeMinutes = Math.max(0, minutes);
 
-    setSessionStudyTime((current) => ({
-      ...current,
-      [day.id]: {
-        ...(current[day.id] ?? createInitialStudyTime()),
-        [category]: safeMinutes,
-      },
-    }));
+    setDayProgressById((current) => {
+      const currentDayProgress = mergeDayProgress(day, current[day.id]);
+      return {
+        ...current,
+        [day.id]: {
+          ...currentDayProgress,
+          studyTime: {
+            ...currentDayProgress.studyTime,
+            [category]: safeMinutes,
+          },
+        },
+      };
+    });
   }, [day]);
 
   const selectDay = useCallback((dayNumber: number) => {
@@ -157,6 +173,9 @@ export function useLearningProgress() {
 
   const previousDay = getLearningDay(currentWeek, currentDay - 1);
   const nextDay = getLearningDay(currentWeek, currentDay + 1);
+  const studyTime = day
+    ? (dayProgressById[day.id]?.studyTime ?? createInitialStudyTime())
+    : createInitialStudyTime();
 
   return {
     availableDays,
@@ -174,7 +193,7 @@ export function useLearningProgress() {
       if (previousDay) setCurrentDay(previousDay.day);
     },
     selectDay,
-    studyTime: day ? (sessionStudyTime[day.id] ?? createInitialStudyTime()) : createInitialStudyTime(),
+    studyTime,
     togglePassCriterion,
     updateStudyTime,
     updateTaskStatus,
