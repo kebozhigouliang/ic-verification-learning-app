@@ -27,8 +27,14 @@ export interface BuildTask {
 export interface DebugTask { id: string; title: string; prompt: string; expectedOutcome: string; }
 export interface PassCriterion { id: string; label: string; }
 
+export interface LearningStage {
+  number: number;
+  title: string;
+}
+
 export interface LearningDay {
   id: string;
+  stage: LearningStage;
   week: number;
   day: number;
   kind: "learning" | "checkpoint";

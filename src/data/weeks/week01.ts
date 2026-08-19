@@ -1,12 +1,17 @@
 import type { LearningWeek } from "@/types/learning";
 
+const stage01 = {
+  number: 1,
+  title: "Digital Logic + Verilog",
+} as const;
+
 export const week01: LearningWeek = {
   id: "week01",
   week: 1,
   title: "基础RTL",
   days: [
     {
-      id: "w01d01", week: 1, day: 1, kind: "learning", title: "数字逻辑与Verilog环境入门",
+      id: "w01d01", stage: stage01, week: 1, day: 1, kind: "learning", title: "数字逻辑与Verilog环境入门",
       topics: ["Binary", "AND", "OR", "NOT", "XOR", "module", "input", "output", "wire", "assign"],
       learn: [
         { id: "w01d01-learn-nandland-fpga101", title: "Nandland FPGA-101相关基础内容", type: "document", scope: "数字系统基础" },
@@ -23,7 +28,7 @@ export const week01: LearningWeek = {
       ],
     },
     {
-      id: "w01d02", week: 1, day: 2, kind: "learning", title: "组合逻辑与MUX",
+      id: "w01d02", stage: stage01, week: 1, day: 2, kind: "learning", title: "组合逻辑与MUX",
       topics: ["Boolean Logic", "Multiplexer", "条件运算符", "assign", "? :"], learn: [],
       practice: [{ id: "w01d02-practice-hdlbits-mux", title: "HDLBits MUX相关基础题" }],
       build: [
@@ -37,7 +42,7 @@ export const week01: LearningWeek = {
       ],
     },
     {
-      id: "w01d03", week: 1, day: 3, kind: "learning", title: "Decoder / Encoder",
+      id: "w01d03", stage: stage01, week: 1, day: 3, kind: "learning", title: "Decoder / Encoder",
       topics: ["Decoder", "Encoder", "case"], learn: [], practice: [],
       build: [{ id: "w01d03-build-decoder", title: "实现2-to-4 Decoder", requirements: ["练习case", "Testbench验证所有输入组合"], requiresTestbench: true, requiresSimulation: true, requiresWaveform: false, deliverables: ["2-to-4 Decoder", "Testbench"] }],
       debug: [],
@@ -47,7 +52,7 @@ export const week01: LearningWeek = {
       ],
     },
     {
-      id: "w01d04", week: 1, day: 4, kind: "learning", title: "Adder",
+      id: "w01d04", stage: stage01, week: 1, day: 4, kind: "learning", title: "Adder",
       topics: ["Half Adder", "Full Adder", "Carry"], learn: [], practice: [],
       build: [
         { id: "w01d04-build-half", title: "实现Half Adder", requirements: ["Testbench覆盖所有输入组合"], requiresTestbench: true, requiresSimulation: true, requiresWaveform: false, deliverables: ["Half Adder", "Testbench"] },
@@ -61,7 +66,7 @@ export const week01: LearningWeek = {
       ],
     },
     {
-      id: "w01d05", week: 1, day: 5, kind: "learning", title: "always组合逻辑",
+      id: "w01d05", stage: stage01, week: 1, day: 5, kind: "learning", title: "always组合逻辑",
       topics: ["always @(*)", "if", "case", "continuous assignment", "procedural combinational logic"], learn: [], practice: [],
       build: [
         { id: "w01d05-build-assign", title: "使用assign实现MUX", requirements: ["assign版本"], requiresTestbench: true, requiresSimulation: true, requiresWaveform: false, deliverables: ["assign版本MUX"] },
@@ -75,7 +80,7 @@ export const week01: LearningWeek = {
       ],
     },
     {
-      id: "w01d06", week: 1, day: 6, kind: "learning", title: "综合练习",
+      id: "w01d06", stage: stage01, week: 1, day: 6, kind: "learning", title: "综合练习",
       topics: ["不要学习大量新内容", "不复制教程"], learn: [], practice: [],
       build: [
         { id: "w01d06-build-mux2", title: "从空白完成2:1 MUX", requirements: ["不复制教程"], requiresTestbench: true, requiresSimulation: true, requiresWaveform: false, deliverables: ["2:1 MUX"] },
@@ -92,7 +97,7 @@ export const week01: LearningWeek = {
       ],
     },
     {
-      id: "w01d07", week: 1, day: 7, kind: "checkpoint", title: "Week 1 Checkpoint",
+      id: "w01d07", stage: stage01, week: 1, day: 7, kind: "checkpoint", title: "Week 1 Checkpoint",
       topics: ["今天不看新课程"], learn: [], practice: [], build: [], debug: [],
       passCriteria: [
         { id: "w01d07-pass-mux2", label: "不查答案写2:1 MUX" }, { id: "w01d07-pass-mux4", label: "不查答案写4:1 MUX" },

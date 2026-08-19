@@ -27,3 +27,7 @@ Project-specific constraints:
 - V1 persistence is device-local and uses localStorage with a versioned schema. Do not introduce cloud persistence.
 - Automated test frameworks are deferred until Week 2 or Week 3. For the current phase, use TypeScript checks, production builds, and basic manual acceptance only.
 - Milestone boundaries are scope boundaries. Do not implement later milestone business logic early.
+- Published data IDs must never be changed.
+- When changing a task title, description, or resource link, preserve its existing ID.
+- Add each new week as `src/data/weeks/weekXX.ts`, then register it in `src/data/weeks/index.ts`; never copy a page to add week content.
+- If topics need individual progress tracking in the future, give each topic a stable ID before storing progress against it.
