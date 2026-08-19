@@ -60,6 +60,7 @@ export function resetAppData(): AppData {
   return saveAppData({
     ...defaultData,
     notes: currentData.notes,
+    projects: currentData.projects,
   });
 }
 

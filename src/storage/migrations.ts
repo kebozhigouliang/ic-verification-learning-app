@@ -1,6 +1,7 @@
 import { createDefaultAppData, CURRENT_SCHEMA_VERSION } from "@/storage/defaults";
 import type { AppData, ThemeSetting } from "@/types/app-data";
 import type { BugNote, NormalNote, NoteEntry, QuestionNote } from "@/types/notes";
+import type { ProjectRecord, ProjectStatus } from "@/types/projects";
 import type {
   CheckpointResult,
   DailyStudyTime,
@@ -207,6 +208,52 @@ function normalizeNotes(value: unknown): NoteEntry[] {
   });
 }
 
+function normalizeProjectStatus(value: unknown): ProjectStatus | undefined {
+  return value === "not_started"
+    || value === "planning"
+    || value === "in_progress"
+    || value === "blocked"
+    || value === "completed"
+    ? value
+    : undefined;
+}
+
+function normalizeProject(value: unknown, fallbackUpdatedAt: string): ProjectRecord | undefined {
+  if (!isRecord(value) || typeof value.id !== "string" || typeof value.name !== "string") {
+    return undefined;
+  }
+
+  const status = normalizeProjectStatus(value.status);
+  const id = value.id.trim();
+  const name = value.name.trim();
+  if (!status || !id || !name) return undefined;
+
+  const project: ProjectRecord = {
+    id,
+    name,
+    status,
+    updatedAt: typeof value.updatedAt === "string" ? value.updatedAt : fallbackUpdatedAt,
+  };
+
+  if (typeof value.startDate === "string") project.startDate = value.startDate;
+  if (typeof value.completedDate === "string") project.completedDate = value.completedDate;
+  if (typeof value.repositoryUrl === "string") project.repositoryUrl = value.repositoryUrl;
+  if (typeof value.currentIssue === "string") project.currentIssue = value.currentIssue;
+  return project;
+}
+
+function normalizeProjects(value: unknown, fallbackUpdatedAt: string): ProjectRecord[] {
+  if (!Array.isArray(value)) return [];
+  const seenIds = new Set<string>();
+
+  return value.flatMap((rawProject) => {
+    const project = normalizeProject(rawProject, fallbackUpdatedAt);
+    if (!project || seenIds.has(project.id)) return [];
+    seenIds.add(project.id);
+    return [project];
+  });
+}
+
 export function migrateAppData(value: unknown): AppData {
   const defaults = createDefaultAppData();
   if (!isRecord(value)) return defaults;
@@ -220,5 +267,6 @@ export function migrateAppData(value: unknown): AppData {
     },
     progress: normalizeProgress(value.progress, defaults.progress),
     notes: normalizeNotes(value.notes),
+    projects: normalizeProjects(value.projects, defaults.updatedAt),
   };
 }
