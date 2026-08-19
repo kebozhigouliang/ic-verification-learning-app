@@ -5,6 +5,7 @@ import type { LearningDay } from "@/types/learning";
 import type {
   DailyStudyTime,
   DayProgress,
+  LearningProgress,
   MasteryProgress,
   StudyCategory,
   TaskProgress,
@@ -208,6 +209,12 @@ export function useLearningProgress() {
   const studyTime = day
     ? (dayProgressById[day.id]?.studyTime ?? createInitialStudyTime())
     : createInitialStudyTime();
+  const learningProgress: LearningProgress = {
+    ...appDataBase.progress,
+    currentWeek,
+    currentDay,
+    days: dayProgressById,
+  };
 
   return {
     availableDays,
@@ -224,6 +231,7 @@ export function useLearningProgress() {
     goToPreviousDay: () => {
       if (previousDay) setCurrentDay(previousDay.day);
     },
+    learningProgress,
     replaceAppData,
     resetProgress,
     selectDay,

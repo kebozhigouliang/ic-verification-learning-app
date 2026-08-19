@@ -35,6 +35,7 @@ export function App() {
     getTaskStatus,
     goToNextDay,
     goToPreviousDay,
+    learningProgress,
     replaceAppData,
     resetProgress,
     selectDay,
@@ -54,7 +55,7 @@ export function App() {
     case "roadmap": return <RoadmapPage />;
     case "projects": return <ProjectsPage />;
     case "notes": return <NotesPage />;
-    case "progress": return <ProgressPage />;
+    case "progress": return <ProgressPage progress={learningProgress} />;
     case "settings": return (
       <SettingsPage
         onDataImported={(data) => {

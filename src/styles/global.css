@@ -242,6 +242,65 @@ h1 { max-width: 520px; margin: 0; font-size: clamp(1.35rem, 6vw, 2rem); line-hei
 .project-details dd { margin: 0; color: var(--muted); font-size: .75rem; line-height: 1.55; overflow-wrap: anywhere; white-space: pre-wrap; }
 .project-details a { color: var(--accent); text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--accent) 45%, transparent); text-underline-offset: 3px; }
 .current-issue-detail { background: color-mix(in srgb, #f59e0b 4%, transparent); }
+.progress-position { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-bottom: 18px; border: 1px solid var(--line); background: var(--surface); }
+.progress-position > div { display: grid; gap: 7px; padding: 14px 15px; }
+.progress-position > div:first-child { border-right: 1px solid var(--line); }
+.progress-position span, .progress-section-header span, .progress-header-metric span, .week-day-progress > header span, .day-progress-metrics span, .day-progress-status, .task-category-summary article > span, .study-category-summary span, .daily-study-time-list span, .recent-progress-list article > div span, .recent-progress-list dt, .coding-summary span { color: var(--faint); font: 600 .55rem/1 var(--font-code); letter-spacing: .08em; }
+.progress-position strong { color: var(--accent); font: 650 .82rem/1.2 var(--font-code); }
+.progress-section { margin-top: 18px; border: 1px solid var(--line); background: var(--surface); }
+.progress-section-header { display: flex; gap: 16px; min-height: 62px; padding: 14px 15px; border-bottom: 1px solid var(--line); align-items: center; justify-content: space-between; }
+.progress-section-header > div:first-child { display: grid; gap: 7px; }
+.progress-section-header h2 { margin: 0; font-size: .88rem; }
+.progress-section-header > div:first-child > span { color: var(--accent); }
+.progress-header-metric { display: grid; gap: 6px; text-align: right; }
+.progress-header-metric strong { font: 650 .8rem/1 var(--font-code); }
+.progress-track { height: 4px; overflow: hidden; background: var(--line); }
+.progress-section > .progress-track { margin: 14px 15px; }
+.progress-track > span { display: block; width: 0; height: 100%; background: var(--accent); }
+.progress-track.blue > span { background: #60a5fa; }
+.week-day-progress { border-top: 1px solid var(--line); }
+.week-day-progress:first-child { border-top: 0; }
+.week-day-progress > header { display: flex; gap: 12px; padding: 13px 15px 10px; align-items: flex-start; justify-content: space-between; }
+.week-day-progress > header > div { display: grid; gap: 6px; }
+.week-day-progress > header h3 { margin: 0; font-size: .8rem; line-height: 1.4; }
+.day-progress-status { flex: 0 0 auto; padding: 5px 7px; border: 1px solid var(--line-strong); }
+.day-progress-status.pass { border-color: var(--accent); color: var(--accent); }
+.day-progress-status.in_progress { border-color: #d8a84e; color: #e7bd67; }
+.day-progress-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.day-progress-metrics > div { display: grid; grid-template-columns: 1fr auto; gap: 8px; padding: 10px 15px 14px; }
+.day-progress-metrics > div:first-child { border-right: 1px solid var(--line); }
+.day-progress-metrics strong { font: 650 .68rem/1 var(--font-code); }
+.day-progress-metrics .progress-track { grid-column: 1 / -1; }
+.task-category-summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.task-category-summary article { display: grid; gap: 10px; padding: 15px; border-bottom: 1px solid var(--line); }
+.task-category-summary article:nth-child(odd) { border-right: 1px solid var(--line); }
+.task-category-summary article:nth-last-child(-n + 2) { border-bottom: 0; }
+.task-category-summary article > div { display: flex; align-items: baseline; justify-content: space-between; }
+.task-category-summary strong, .large-progress-metric strong { font: 650 .9rem/1 var(--font-code); }
+.task-category-summary em, .large-progress-metric em { color: var(--muted); font: 600 .62rem/1 var(--font-code); font-style: normal; }
+.progress-summary-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.progress-section.compact { min-width: 0; }
+.large-progress-metric { display: flex; padding: 17px 15px 12px; align-items: baseline; justify-content: space-between; }
+.coding-summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.coding-summary > div { display: grid; gap: 8px; padding: 17px 15px 12px; }
+.coding-summary > div:first-child { border-right: 1px solid var(--line); }
+.coding-summary strong { font: 650 .9rem/1 var(--font-code); }
+.study-category-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-bottom: 1px solid var(--line); }
+.study-category-summary > div { display: grid; gap: 8px; padding: 14px 15px; border-right: 1px solid var(--line); }
+.study-category-summary > div:last-child { border-right: 0; }
+.study-category-summary strong { font: 650 .7rem/1 var(--font-code); }
+.daily-study-time-list { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+.daily-study-time-list > div { display: grid; min-width: 0; gap: 7px; padding: 13px 8px; border-right: 1px solid var(--line); text-align: center; }
+.daily-study-time-list > div:last-child { border-right: 0; }
+.daily-study-time-list strong { font: 650 .59rem/1.2 var(--font-code); }
+.recent-progress-list article { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 14px; padding: 13px 15px; border-top: 1px solid var(--line); align-items: center; }
+.recent-progress-list article:first-child { border-top: 0; }
+.recent-progress-list article > div { display: grid; min-width: 0; gap: 6px; }
+.recent-progress-list article > div strong { font-size: .78rem; line-height: 1.4; }
+.recent-progress-list dl { display: grid; grid-template-columns: repeat(3, auto); gap: 16px; margin: 0; }
+.recent-progress-list dl > div { display: grid; gap: 5px; text-align: right; }
+.recent-progress-list dt, .recent-progress-list dd { margin: 0; }
+.recent-progress-list dd { color: var(--muted); font: 650 .61rem/1 var(--font-code); }
 .notes-toolbar { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; margin-bottom: 18px; align-items: end; }
 .note-type-filters { display: flex; gap: 6px; grid-column: 1 / -1; flex-wrap: wrap; }
 .note-type-filters button, .add-note-button, .note-editor button, .note-card-actions button, .question-status { min-height: 36px; padding: 8px 10px; border: 1px solid var(--line-strong); background: var(--surface); color: var(--muted); font: 650 .57rem/1 var(--font-code); letter-spacing: .06em; cursor: pointer; }
@@ -298,6 +357,26 @@ h1 { max-width: 520px; margin: 0; font-size: clamp(1.35rem, 6vw, 2rem); line-hei
 .visually-hidden { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; border: 0 !important; }
 
 @media (max-width: 420px) {
+  .progress-position, .progress-summary-pair { grid-template-columns: 1fr; }
+  .progress-position > div:first-child { border-right: 0; border-bottom: 1px solid var(--line); }
+  .progress-section-header { align-items: flex-start; }
+  .week-day-progress > header { display: grid; }
+  .day-progress-status { justify-self: start; }
+  .task-category-summary { grid-template-columns: 1fr; }
+  .task-category-summary article:nth-child(odd) { border-right: 0; }
+  .task-category-summary article:nth-last-child(-n + 2) { border-bottom: 1px solid var(--line); }
+  .task-category-summary article:last-child { border-bottom: 0; }
+  .study-category-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .study-category-summary > div { border-bottom: 1px solid var(--line); }
+  .study-category-summary > div:nth-child(2) { border-right: 0; }
+  .study-category-summary > div:nth-last-child(-n + 2) { border-bottom: 0; }
+  .daily-study-time-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .daily-study-time-list > div { border-bottom: 1px solid var(--line); }
+  .daily-study-time-list > div:nth-child(even) { border-right: 0; }
+  .daily-study-time-list > div:last-child { border-bottom: 0; }
+  .recent-progress-list article { grid-template-columns: 1fr; }
+  .recent-progress-list dl { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .recent-progress-list dl > div { text-align: left; }
   .projects-toolbar { align-items: stretch; }
   .projects-toolbar > button { min-width: 0; }
   .project-editor form { grid-template-columns: 1fr; }
