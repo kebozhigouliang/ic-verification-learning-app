@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { getLearningDay, initialLearningSelection, weeks } from "@/data/weeks";
-import { loadAppData, saveAppData } from "@/storage/repository";
+import { loadAppData, resetAppData, saveAppData } from "@/storage/repository";
 import type { LearningDay } from "@/types/learning";
 import type {
   DailyStudyTime,
@@ -89,15 +89,19 @@ export function useLearningProgress() {
   }, [day]);
 
   useEffect(() => {
-    saveAppData({
-      ...appDataBase,
-      progress: {
-        ...appDataBase.progress,
-        currentWeek,
-        currentDay,
-        days: dayProgressById,
-      },
-    });
+    try {
+      saveAppData({
+        ...appDataBase,
+        progress: {
+          ...appDataBase.progress,
+          currentWeek,
+          currentDay,
+          days: dayProgressById,
+        },
+      });
+    } catch {
+      // Keep the in-memory session usable when browser storage is unavailable.
+    }
   }, [appDataBase, currentDay, currentWeek, dayProgressById]);
 
   const getTaskStatus = useCallback((taskId: string): TaskStatus => {
@@ -192,6 +196,12 @@ export function useLearningProgress() {
     setDayProgressById(nextDays);
   }, []);
 
+  const resetProgress = useCallback(() => {
+    const resetData = resetAppData();
+    replaceAppData(resetData);
+    return resetData;
+  }, [replaceAppData]);
+
   const previousDay = getLearningDay(currentWeek, currentDay - 1);
   const nextDay = getLearningDay(currentWeek, currentDay + 1);
   const studyTime = day
@@ -214,6 +224,7 @@ export function useLearningProgress() {
       if (previousDay) setCurrentDay(previousDay.day);
     },
     replaceAppData,
+    resetProgress,
     selectDay,
     studyTime,
     togglePassCriterion,

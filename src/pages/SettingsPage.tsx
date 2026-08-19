@@ -10,6 +10,7 @@ import type { AppData } from "@/types/app-data";
 
 interface SettingsPageProps {
   onDataImported: (data: AppData) => void;
+  onResetProgress: () => void;
 }
 
 type OperationMessage = {
@@ -17,10 +18,12 @@ type OperationMessage = {
   text: string;
 };
 
-export function SettingsPage({ onDataImported }: SettingsPageProps) {
+export function SettingsPage({ onDataImported, onResetProgress }: SettingsPageProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [message, setMessage] = useState<OperationMessage>();
   const [isImporting, setIsImporting] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
+  const [showResetConfirmation, setShowResetConfirmation] = useState(false);
 
   const handleExport = () => {
     try {
@@ -59,6 +62,20 @@ export function SettingsPage({ onDataImported }: SettingsPageProps) {
     }
   };
 
+  const handleConfirmReset = () => {
+    setIsResetting(true);
+    setMessage(undefined);
+
+    try {
+      onResetProgress();
+      setShowResetConfirmation(false);
+    } catch {
+      setMessage({ kind: "error", text: "Reset failed. Your current data was not changed." });
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
   return (
     <AppShell activePage="settings">
       <PageIntro
@@ -94,6 +111,45 @@ export function SettingsPage({ onDataImported }: SettingsPageProps) {
             type="file"
           />
         </div>
+        <div className="data-action danger-action">
+          <div>
+            <h3>Reset Progress</h3>
+            <p>Restore the default Day, Task, Mastery, Study Time, and settings data.</p>
+          </div>
+          <button
+            disabled={isResetting}
+            onClick={() => {
+              setMessage(undefined);
+              setShowResetConfirmation(true);
+            }}
+            type="button"
+          >RESET PROGRESS</button>
+        </div>
+        {showResetConfirmation ? (
+          <section
+            aria-describedby="reset-confirmation-description"
+            aria-labelledby="reset-confirmation-title"
+            aria-modal="true"
+            className="reset-confirmation"
+            role="alertdialog"
+          >
+            <h3 id="reset-confirmation-title">Reset all learning progress?</h3>
+            <p id="reset-confirmation-description">Your tasks, mastery status and study time will be cleared.</p>
+            <div>
+              <button
+                disabled={isResetting}
+                onClick={() => {
+                  setShowResetConfirmation(false);
+                  setMessage({ kind: "neutral", text: "Reset cancelled. Current data was not changed." });
+                }}
+                type="button"
+              >CANCEL</button>
+              <button className="confirm-reset" disabled={isResetting} onClick={handleConfirmReset} type="button">
+                {isResetting ? "RESETTING..." : "CONFIRM RESET"}
+              </button>
+            </div>
+          </section>
+        ) : null}
         <p className="data-warning">Import replaces Task, Mastery, Study Time, and current Day data after confirmation.</p>
         {message ? <p className={`operation-message ${message.kind}`} role={message.kind === "error" ? "alert" : "status"}>{message.text}</p> : null}
       </section>

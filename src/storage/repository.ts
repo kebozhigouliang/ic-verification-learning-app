@@ -4,6 +4,13 @@ import type { AppData } from "@/types/app-data";
 
 export const STORAGE_KEY = "ic-verify-learning-app";
 
+export class AppDataStorageError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "AppDataStorageError";
+  }
+}
+
 function getStorage(): Storage | undefined {
   try {
     return typeof window === "undefined" ? undefined : window.localStorage;
@@ -35,14 +42,20 @@ export function saveAppData(data: AppData): AppData {
     updatedAt: new Date().toISOString(),
   };
 
-  if (!storage) return nextData;
+  if (!storage) {
+    throw new AppDataStorageError("Local storage is unavailable.");
+  }
 
   try {
     storage.setItem(STORAGE_KEY, JSON.stringify(nextData));
   } catch {
-    // Storage can be unavailable or full. The in-memory session remains usable.
+    throw new AppDataStorageError("Local data could not be saved.");
   }
   return nextData;
+}
+
+export function resetAppData(): AppData {
+  return saveAppData(createDefaultAppData());
 }
 
 export function clearAppData(): void {

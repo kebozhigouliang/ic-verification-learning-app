@@ -36,6 +36,7 @@ export function App() {
     goToNextDay,
     goToPreviousDay,
     replaceAppData,
+    resetProgress,
     selectDay,
     studyTime,
     togglePassCriterion,
@@ -58,6 +59,10 @@ export function App() {
       <SettingsPage
         onDataImported={(data) => {
           replaceAppData(data);
+          window.location.hash = "#/";
+        }}
+        onResetProgress={() => {
+          resetProgress();
           window.location.hash = "#/";
         }}
       />

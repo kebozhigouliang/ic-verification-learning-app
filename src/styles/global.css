@@ -174,6 +174,17 @@ h1 { max-width: 520px; margin: 0; font-size: clamp(1.35rem, 6vw, 2rem); line-hei
 .data-action button { min-width: 112px; min-height: 38px; padding: 8px 10px; border: 1px solid var(--line-strong); background: var(--bg); color: var(--text); font: 650 .58rem/1 var(--font-code); letter-spacing: .06em; cursor: pointer; }
 .data-action button:not(:disabled):hover, .data-action button:not(:disabled):focus-visible { border-color: var(--accent); color: var(--accent); outline: none; }
 .data-action button:disabled { cursor: default; opacity: .45; }
+.danger-action h3 { color: #fca5a5; }
+.danger-action > button { border-color: color-mix(in srgb, #ef4444 55%, var(--line-strong)); color: #fca5a5; }
+.danger-action > button:not(:disabled):hover, .danger-action > button:not(:disabled):focus-visible { border-color: #ef4444; color: #fecaca; }
+.reset-confirmation { margin: 14px; padding: 15px; border: 1px solid #7f1d1d; background: color-mix(in srgb, #7f1d1d 18%, var(--bg)); }
+.reset-confirmation h3 { margin: 0; color: #fecaca; font-size: .9rem; }
+.reset-confirmation p { margin: 8px 0 14px; color: var(--muted); font-size: .74rem; line-height: 1.5; }
+.reset-confirmation > div { display: flex; gap: 8px; justify-content: flex-end; }
+.reset-confirmation button { min-height: 36px; padding: 8px 11px; border: 1px solid var(--line-strong); background: var(--bg); color: var(--muted); font: 650 .57rem/1 var(--font-code); letter-spacing: .05em; cursor: pointer; }
+.reset-confirmation button:not(:disabled):hover, .reset-confirmation button:not(:disabled):focus-visible { border-color: var(--text); color: var(--text); outline: none; }
+.reset-confirmation .confirm-reset { border-color: #ef4444; color: #fecaca; }
+.reset-confirmation button:disabled { cursor: default; opacity: .45; }
 .data-warning { margin: 0; padding: 13px 15px; border-bottom: 1px solid var(--line); color: var(--muted); font: 500 .65rem/1.5 var(--font-code); }
 .operation-message { margin: 0; padding: 13px 15px; font: 550 .68rem/1.5 var(--font-code); }
 .operation-message.success { color: var(--accent); }
