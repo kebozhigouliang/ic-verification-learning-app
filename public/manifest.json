@@ -1,0 +1,26 @@
+{
+  "name": "IC Verification Learning App",
+  "short_name": "IC Verify",
+  "description": "A local-first learning console for IC verification study.",
+  "id": "/",
+  "lang": "zh-CN",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "theme_color": "#090d0f",
+  "background_color": "#090d0f",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
