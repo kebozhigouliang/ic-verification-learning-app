@@ -1,11 +1,18 @@
 import { useCallback, useEffect, useState } from "react";
 import { getLearningDay, initialLearningSelection, weeks } from "@/data/weeks";
 import type { LearningDay } from "@/types/learning";
-import type { MasteryProgress, TaskProgress, TaskStatus } from "@/types/progress";
+import type {
+  DailyStudyTime,
+  MasteryProgress,
+  StudyCategory,
+  TaskProgress,
+  TaskStatus,
+} from "@/types/progress";
 
 type DayTaskProgress = Record<string, TaskProgress>;
 type SessionTaskProgress = Record<string, DayTaskProgress>;
 type SessionMasteryProgress = Record<string, MasteryProgress>;
+type SessionStudyTime = Record<string, DailyStudyTime>;
 
 function getTaskIds(day: LearningDay): string[] {
   return [
@@ -28,6 +35,10 @@ function createInitialMasteryProgress(day: LearningDay): MasteryProgress {
   );
 }
 
+function createInitialStudyTime(): DailyStudyTime {
+  return { learn: 0, practice: 0, build: 0, debug: 0 };
+}
+
 export function useLearningProgress() {
   const [currentWeek] = useState<number>(initialLearningSelection.week);
   const [currentDay, setCurrentDay] = useState<number>(initialLearningSelection.day);
@@ -38,6 +49,9 @@ export function useLearningProgress() {
   ));
   const [sessionMastery, setSessionMastery] = useState<SessionMasteryProgress>(() => (
     day ? { [day.id]: createInitialMasteryProgress(day) } : {}
+  ));
+  const [sessionStudyTime, setSessionStudyTime] = useState<SessionStudyTime>(() => (
+    day ? { [day.id]: createInitialStudyTime() } : {}
   ));
 
   useEffect(() => {
@@ -78,6 +92,12 @@ export function useLearningProgress() {
         },
       };
     });
+
+    setSessionStudyTime((current) => (
+      current[day.id]
+        ? current
+        : { ...current, [day.id]: createInitialStudyTime() }
+    ));
   }, [day]);
 
   const getTaskStatus = useCallback((taskId: string): TaskStatus => {
@@ -117,6 +137,19 @@ export function useLearningProgress() {
     }));
   }, [day]);
 
+  const updateStudyTime = useCallback((category: StudyCategory, minutes: number) => {
+    if (!day || !Number.isFinite(minutes)) return;
+    const safeMinutes = Math.max(0, minutes);
+
+    setSessionStudyTime((current) => ({
+      ...current,
+      [day.id]: {
+        ...(current[day.id] ?? createInitialStudyTime()),
+        [category]: safeMinutes,
+      },
+    }));
+  }, [day]);
+
   const selectDay = useCallback((dayNumber: number) => {
     const selectedDay = getLearningDay(currentWeek, dayNumber);
     if (selectedDay) setCurrentDay(selectedDay.day);
@@ -141,7 +174,9 @@ export function useLearningProgress() {
       if (previousDay) setCurrentDay(previousDay.day);
     },
     selectDay,
+    studyTime: day ? (sessionStudyTime[day.id] ?? createInitialStudyTime()) : createInitialStudyTime(),
     togglePassCriterion,
+    updateStudyTime,
     updateTaskStatus,
   };
 }

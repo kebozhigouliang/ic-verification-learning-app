@@ -1,8 +1,12 @@
 import { AppShell } from "@/components/layout/AppShell";
 import { Section } from "@/components/ui/Section";
 import type { LearningDay } from "@/types/learning";
-import type { TaskStatus } from "@/types/progress";
-import { calculateMasteryProgress, calculateTaskProgress } from "@/utils/progress";
+import type { DailyStudyTime, StudyCategory, TaskStatus } from "@/types/progress";
+import {
+  calculateMasteryProgress,
+  calculateStudyTimeTotal,
+  calculateTaskProgress,
+} from "@/utils/progress";
 
 interface TodayPageProps {
   availableDays: readonly number[];
@@ -15,7 +19,9 @@ interface TodayPageProps {
   onSelectDay: (day: number) => void;
   onPreviousDay: () => void;
   onNextDay: () => void;
+  studyTime: DailyStudyTime;
   togglePassCriterion: (criterionId: string) => void;
+  updateStudyTime: (category: StudyCategory, minutes: number) => void;
 }
 
 function formatCode(prefix: string, value: number) {
@@ -26,6 +32,13 @@ const taskStatusOptions: { value: TaskStatus; label: string }[] = [
   { value: "todo", label: "TODO" },
   { value: "doing", label: "DOING" },
   { value: "pass", label: "PASS" },
+];
+
+const studyCategories: { value: StudyCategory; label: string }[] = [
+  { value: "learn", label: "LEARN" },
+  { value: "practice", label: "PRACTICE" },
+  { value: "build", label: "BUILD" },
+  { value: "debug", label: "DEBUG" },
 ];
 
 interface TaskStatusSelectProps {
@@ -60,7 +73,9 @@ export function TodayPage({
   onSelectDay,
   onPreviousDay,
   onNextDay,
+  studyTime,
   togglePassCriterion,
+  updateStudyTime,
 }: TodayPageProps) {
   const stageCode = formatCode("STAGE ", day.stage.number);
   const weekCode = formatCode("W", day.week);
@@ -79,6 +94,7 @@ export function TodayPage({
   const masteryProgress = calculateMasteryProgress(
     day.passCriteria.map((criterion) => getPassCriterionState(criterion.id)),
   );
+  const totalStudyTime = calculateStudyTimeTotal(studyTime);
   const dayStatus: TaskStatus = taskProgress.total > 0 && taskProgress.passed === taskProgress.total
     ? "pass"
     : taskIds.some((taskId) => getTaskStatus(taskId) !== "todo")
@@ -112,6 +128,7 @@ export function TodayPage({
       </section>
       <section className="summary-panel" aria-label="今日学习概览">
         <div className="estimated-summary"><span>ESTIMATED</span><strong>{estimatedTime}</strong></div>
+        <div className="study-total-summary"><span>TOTAL STUDY TIME</span><strong>{totalStudyTime} MIN</strong></div>
         <div className="progress-summary">
           <span>TASK PROGRESS</span>
           <strong>{taskProgress.passed} / {taskProgress.total} · {taskProgress.percentage}%</strong>
@@ -121,6 +138,44 @@ export function TodayPage({
           <span>MASTERY PROGRESS</span>
           <strong>{masteryProgress.completed} / {masteryProgress.total} · {masteryProgress.percentage}%</strong>
           <div className="metric-track mastery-track" aria-label={`掌握进度 ${masteryProgress.percentage}%`}><span style={{ width: `${masteryProgress.percentage}%` }} /></div>
+        </div>
+      </section>
+      <section className="study-time-panel" aria-labelledby="study-time-title">
+        <header>
+          <div>
+            <p>SESSION DATA</p>
+            <h2 id="study-time-title">STUDY TIME</h2>
+          </div>
+          <strong>{totalStudyTime} MIN</strong>
+        </header>
+        <div className="study-time-grid">
+          {studyCategories.map((category) => (
+            <div className="study-time-row" key={category.value}>
+              <label htmlFor={`study-time-${category.value}`}>{category.label}</label>
+              <div className="study-time-controls">
+                <button
+                  aria-label={`Subtract 10 minutes from ${category.label}`}
+                  onClick={() => updateStudyTime(category.value, studyTime[category.value] - 10)}
+                  type="button"
+                >−10</button>
+                <input
+                  id={`study-time-${category.value}`}
+                  inputMode="decimal"
+                  min="0"
+                  onChange={(event) => updateStudyTime(category.value, event.currentTarget.valueAsNumber)}
+                  step="1"
+                  type="number"
+                  value={studyTime[category.value]}
+                />
+                <span>MIN</span>
+                <button
+                  aria-label={`Add 10 minutes to ${category.label}`}
+                  onClick={() => updateStudyTime(category.value, studyTime[category.value] + 10)}
+                  type="button"
+                >+10</button>
+              </div>
+            </div>
+          ))}
         </div>
       </section>
       <Section title="LEARN" count={day.topics.length + day.learn.length}>
@@ -180,7 +235,7 @@ export function TodayPage({
         <span>{weekCode} / {dayCode}</span>
         <button disabled={!canGoNext} onClick={onNextDay} type="button">NEXT DAY →</button>
       </nav>
-      <p className="scope-note">MILESTONE 2.3 · SESSION MASTERY STATUS</p>
+      <p className="scope-note">MILESTONE 2.4 · SESSION STUDY TIME</p>
     </AppShell>
   );
 }

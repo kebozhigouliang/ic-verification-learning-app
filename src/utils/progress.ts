@@ -1,4 +1,4 @@
-import type { TaskStatus } from "@/types/progress";
+import type { DailyStudyTime, TaskStatus } from "@/types/progress";
 
 export interface TaskProgressSummary {
   passed: number;
@@ -30,4 +30,11 @@ export function calculateMasteryProgress(
   const percentage = total === 0 ? 0 : Math.floor((completed / total) * 100);
 
   return { completed, total, percentage };
+}
+
+export function calculateStudyTimeTotal(studyTime: DailyStudyTime): number {
+  return studyTime.learn
+    + studyTime.practice
+    + studyTime.build
+    + studyTime.debug;
 }

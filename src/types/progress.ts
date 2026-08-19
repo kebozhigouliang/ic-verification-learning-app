@@ -1,7 +1,9 @@
 export type TaskStatus = "todo" | "doing" | "pass";
-export type StudyTimeCategory = "learn" | "practice" | "build" | "debug";
+export type StudyCategory = "learn" | "practice" | "build" | "debug";
+export type StudyTimeCategory = StudyCategory;
 
-export interface StudyTimeMinutes { learn: number; practice: number; build: number; debug: number; }
+export interface DailyStudyTime { learn: number; practice: number; build: number; debug: number; }
+export interface StudyTimeMinutes extends DailyStudyTime {}
 export interface TaskProgress { status: TaskStatus; completedAt?: string; }
 export type MasteryProgress = Record<string, boolean>;
 export interface DayProgress { taskStates: Record<string, TaskProgress>; passCriteria: MasteryProgress; studyTime: StudyTimeMinutes; lastOpenedAt?: string; }

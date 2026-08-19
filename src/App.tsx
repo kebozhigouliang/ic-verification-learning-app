@@ -34,7 +34,9 @@ export function App() {
     goToNextDay,
     goToPreviousDay,
     selectDay,
+    studyTime,
     togglePassCriterion,
+    updateStudyTime,
     updateTaskStatus,
   } = useLearningProgress();
 
@@ -61,7 +63,9 @@ export function App() {
           onNextDay={goToNextDay}
           onPreviousDay={goToPreviousDay}
           onSelectDay={selectDay}
+          studyTime={studyTime}
           togglePassCriterion={togglePassCriterion}
+          updateStudyTime={updateStudyTime}
           updateTaskStatus={updateTaskStatus}
         />
       )
