@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { getLearningDay, initialLearningSelection, weeks } from "@/data/weeks";
 import type { LearningDay } from "@/types/learning";
-import type { TaskProgress, TaskStatus } from "@/types/progress";
+import type { MasteryProgress, TaskProgress, TaskStatus } from "@/types/progress";
 
 type DayTaskProgress = Record<string, TaskProgress>;
 type SessionTaskProgress = Record<string, DayTaskProgress>;
+type SessionMasteryProgress = Record<string, MasteryProgress>;
 
 function getTaskIds(day: LearningDay): string[] {
   return [
@@ -21,6 +22,12 @@ function createInitialDayProgress(day: LearningDay): DayTaskProgress {
   );
 }
 
+function createInitialMasteryProgress(day: LearningDay): MasteryProgress {
+  return Object.fromEntries(
+    day.passCriteria.map((criterion) => [criterion.id, false]),
+  );
+}
+
 export function useLearningProgress() {
   const [currentWeek] = useState<number>(initialLearningSelection.week);
   const [currentDay, setCurrentDay] = useState<number>(initialLearningSelection.day);
@@ -28,6 +35,9 @@ export function useLearningProgress() {
   const availableDays = weeks[currentWeek]?.days.map((learningDay) => learningDay.day) ?? [];
   const [sessionProgress, setSessionProgress] = useState<SessionTaskProgress>(() => (
     day ? { [day.id]: createInitialDayProgress(day) } : {}
+  ));
+  const [sessionMastery, setSessionMastery] = useState<SessionMasteryProgress>(() => (
+    day ? { [day.id]: createInitialMasteryProgress(day) } : {}
   ));
 
   useEffect(() => {
@@ -47,6 +57,24 @@ export function useLearningProgress() {
         [day.id]: {
           ...initialDayProgress,
           ...currentDayProgress,
+        },
+      };
+    });
+
+    setSessionMastery((current) => {
+      const currentDayMastery = current[day.id] ?? {};
+      const initialDayMastery = createInitialMasteryProgress(day);
+      const hasMissingCriteria = Object.keys(initialDayMastery).some(
+        (criterionId) => currentDayMastery[criterionId] === undefined,
+      );
+
+      if (current[day.id] && !hasMissingCriteria) return current;
+
+      return {
+        ...current,
+        [day.id]: {
+          ...initialDayMastery,
+          ...currentDayMastery,
         },
       };
     });
@@ -72,6 +100,23 @@ export function useLearningProgress() {
     }));
   }, [day]);
 
+  const getPassCriterionState = useCallback((criterionId: string): boolean => {
+    if (!day) return false;
+    return sessionMastery[day.id]?.[criterionId] ?? false;
+  }, [day, sessionMastery]);
+
+  const togglePassCriterion = useCallback((criterionId: string) => {
+    if (!day) return;
+
+    setSessionMastery((current) => ({
+      ...current,
+      [day.id]: {
+        ...current[day.id],
+        [criterionId]: !(current[day.id]?.[criterionId] ?? false),
+      },
+    }));
+  }, [day]);
+
   const selectDay = useCallback((dayNumber: number) => {
     const selectedDay = getLearningDay(currentWeek, dayNumber);
     if (selectedDay) setCurrentDay(selectedDay.day);
@@ -87,6 +132,7 @@ export function useLearningProgress() {
     currentDay,
     currentLearningDay: day,
     currentWeek,
+    getPassCriterionState,
     getTaskStatus,
     goToNextDay: () => {
       if (nextDay) setCurrentDay(nextDay.day);
@@ -95,6 +141,7 @@ export function useLearningProgress() {
       if (previousDay) setCurrentDay(previousDay.day);
     },
     selectDay,
+    togglePassCriterion,
     updateTaskStatus,
   };
 }

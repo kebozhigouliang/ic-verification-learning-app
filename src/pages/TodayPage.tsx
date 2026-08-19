@@ -2,18 +2,20 @@ import { AppShell } from "@/components/layout/AppShell";
 import { Section } from "@/components/ui/Section";
 import type { LearningDay } from "@/types/learning";
 import type { TaskStatus } from "@/types/progress";
-import { calculateTaskProgress } from "@/utils/progress";
+import { calculateMasteryProgress, calculateTaskProgress } from "@/utils/progress";
 
 interface TodayPageProps {
   availableDays: readonly number[];
   canGoPrevious: boolean;
   canGoNext: boolean;
   day: LearningDay;
+  getPassCriterionState: (criterionId: string) => boolean;
   getTaskStatus: (taskId: string) => TaskStatus;
   updateTaskStatus: (taskId: string, status: TaskStatus) => void;
   onSelectDay: (day: number) => void;
   onPreviousDay: () => void;
   onNextDay: () => void;
+  togglePassCriterion: (criterionId: string) => void;
 }
 
 function formatCode(prefix: string, value: number) {
@@ -52,11 +54,13 @@ export function TodayPage({
   canGoPrevious,
   canGoNext,
   day,
+  getPassCriterionState,
   getTaskStatus,
   updateTaskStatus,
   onSelectDay,
   onPreviousDay,
   onNextDay,
+  togglePassCriterion,
 }: TodayPageProps) {
   const stageCode = formatCode("STAGE ", day.stage.number);
   const weekCode = formatCode("W", day.week);
@@ -72,6 +76,9 @@ export function TodayPage({
     ...day.debug,
   ].map((task) => task.id);
   const taskProgress = calculateTaskProgress(taskIds.map(getTaskStatus));
+  const masteryProgress = calculateMasteryProgress(
+    day.passCriteria.map((criterion) => getPassCriterionState(criterion.id)),
+  );
   const dayStatus: TaskStatus = taskProgress.total > 0 && taskProgress.passed === taskProgress.total
     ? "pass"
     : taskIds.some((taskId) => getTaskStatus(taskId) !== "todo")
@@ -86,7 +93,7 @@ export function TodayPage({
           <p className="day-code">{weekCode} / {dayCode}</p>
           <h1>{day.title}</h1>
         </div>
-        <span className={`status-badge status-${dayStatus}`}>{dayStatus.toUpperCase()}</span>
+        <span className={`status-badge status-${dayStatus}`}>TASK {dayStatus.toUpperCase()}</span>
       </header>
       <section className="day-selector" aria-label="Day Selector">
         <div>
@@ -104,9 +111,17 @@ export function TodayPage({
         </select>
       </section>
       <section className="summary-panel" aria-label="今日学习概览">
-        <div><span>ESTIMATED</span><strong>{estimatedTime}</strong></div>
-        <div><span>TASK PROGRESS</span><strong>{taskProgress.passed} / {taskProgress.total} · {taskProgress.percentage}%</strong></div>
-        <div className="progress-track" aria-label={`今日进度 ${taskProgress.percentage}%`}><span style={{ width: `${taskProgress.percentage}%` }} /></div>
+        <div className="estimated-summary"><span>ESTIMATED</span><strong>{estimatedTime}</strong></div>
+        <div className="progress-summary">
+          <span>TASK PROGRESS</span>
+          <strong>{taskProgress.passed} / {taskProgress.total} · {taskProgress.percentage}%</strong>
+          <div className="metric-track task-track" aria-label={`任务进度 ${taskProgress.percentage}%`}><span style={{ width: `${taskProgress.percentage}%` }} /></div>
+        </div>
+        <div className="progress-summary mastery-summary">
+          <span>MASTERY PROGRESS</span>
+          <strong>{masteryProgress.completed} / {masteryProgress.total} · {masteryProgress.percentage}%</strong>
+          <div className="metric-track mastery-track" aria-label={`掌握进度 ${masteryProgress.percentage}%`}><span style={{ width: `${masteryProgress.percentage}%` }} /></div>
+        </div>
       </section>
       <Section title="LEARN" count={day.topics.length + day.learn.length}>
         <div className="learning-group">
@@ -148,15 +163,24 @@ export function TodayPage({
       </Section>
       <Section title="PASS CRITERIA" count={day.passCriteria.length}>
         {day.passCriteria.map((item) => (
-          <article className="task-row criterion-row" key={item.id}><span className="task-marker" aria-hidden="true" /><h2>{item.label}</h2></article>
+          <label className={`mastery-row${getPassCriterionState(item.id) ? " mastered" : ""}`} key={item.id}>
+            <input
+              checked={getPassCriterionState(item.id)}
+              onChange={() => togglePassCriterion(item.id)}
+              type="checkbox"
+            />
+            <span>{item.label}</span>
+            <strong>{getPassCriterionState(item.id) ? "MASTERED" : "PENDING"}</strong>
+          </label>
         ))}
+        {day.passCriteria.length === 0 ? <p className="empty-resource-note">NO PASS CRITERIA</p> : null}
       </Section>
       <nav className="day-step-navigation" aria-label="Previous and next learning day">
         <button disabled={!canGoPrevious} onClick={onPreviousDay} type="button">← PREVIOUS DAY</button>
         <span>{weekCode} / {dayCode}</span>
         <button disabled={!canGoNext} onClick={onNextDay} type="button">NEXT DAY →</button>
       </nav>
-      <p className="scope-note">MILESTONE 2.2 · SESSION DAY MANAGEMENT</p>
+      <p className="scope-note">MILESTONE 2.3 · SESSION MASTERY STATUS</p>
     </AppShell>
   );
 }

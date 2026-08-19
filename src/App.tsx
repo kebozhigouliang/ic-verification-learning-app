@@ -29,10 +29,12 @@ export function App() {
     canGoNext,
     canGoPrevious,
     currentLearningDay,
+    getPassCriterionState,
     getTaskStatus,
     goToNextDay,
     goToPreviousDay,
     selectDay,
+    togglePassCriterion,
     updateTaskStatus,
   } = useLearningProgress();
 
@@ -54,10 +56,12 @@ export function App() {
           canGoNext={canGoNext}
           canGoPrevious={canGoPrevious}
           day={currentLearningDay}
+          getPassCriterionState={getPassCriterionState}
           getTaskStatus={getTaskStatus}
           onNextDay={goToNextDay}
           onPreviousDay={goToPreviousDay}
           onSelectDay={selectDay}
+          togglePassCriterion={togglePassCriterion}
           updateTaskStatus={updateTaskStatus}
         />
       )
