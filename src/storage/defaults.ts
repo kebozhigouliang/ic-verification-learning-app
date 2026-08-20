@@ -2,7 +2,7 @@ import { defaultProjects } from "@/data/projects";
 import type { AppData } from "@/types/app-data";
 import type { LearningProgress } from "@/types/progress";
 
-export const CURRENT_SCHEMA_VERSION = 3;
+export const CURRENT_SCHEMA_VERSION = 4;
 
 export function createDefaultProgress(): LearningProgress {
   return {
@@ -23,6 +23,7 @@ export function createDefaultAppData(now = new Date()): AppData {
       theme: "system",
     },
     progress: createDefaultProgress(),
+    interviewProgress: {},
     notes: [],
     projects: defaultProjects.map((project) => ({ ...project, updatedAt })),
   };

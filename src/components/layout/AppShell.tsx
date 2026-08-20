@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-export type PageId = "today" | "roadmap" | "projects" | "skills" | "notes" | "progress" | "settings";
+export type PageId = "today" | "roadmap" | "projects" | "skills" | "interview" | "notes" | "progress" | "settings";
 
 interface AppShellProps { activePage: PageId; children: ReactNode; }
 
@@ -11,6 +11,7 @@ const navigation: Array<{ id: PageId; href: string; label: string }> = [
   { id: "skills", href: "#/skills", label: "SKILLS" },
   { id: "notes", href: "#/notes", label: "NOTES" },
   { id: "progress", href: "#/progress", label: "PROGRESS" },
+  { id: "interview", href: "#/interview", label: "INTERVIEW" },
   { id: "settings", href: "#/settings", label: "SETTINGS" },
 ];
 

@@ -59,6 +59,7 @@ export function resetAppData(): AppData {
   const defaultData = createDefaultAppData();
   return saveAppData({
     ...defaultData,
+    interviewProgress: currentData.interviewProgress,
     notes: currentData.notes,
     projects: currentData.projects,
   });

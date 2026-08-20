@@ -1,3 +1,4 @@
+import type { InterviewProgress } from "@/types/interview";
 import type { LearningProgress } from "@/types/progress";
 import type { NoteEntry } from "@/types/notes";
 import type { ProjectRecord } from "@/types/projects";
@@ -11,6 +12,7 @@ export interface AppData {
     theme: ThemeSetting;
   };
   progress: LearningProgress;
+  interviewProgress: InterviewProgress;
   notes: NoteEntry[];
   projects: ProjectRecord[];
 }

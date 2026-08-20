@@ -3,6 +3,7 @@ import type { PageId } from "@/components/layout/AppShell";
 import { AppShell } from "@/components/layout/AppShell";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useLearningProgress } from "@/hooks/useLearningProgress";
+import { InterviewPage } from "@/pages/InterviewPage";
 import { NotesPage } from "@/pages/NotesPage";
 import { ProgressPage } from "@/pages/ProgressPage";
 import { ProjectsPage } from "@/pages/ProjectsPage";
@@ -18,6 +19,7 @@ const routePages: Record<string, PageId> = {
   "/skills": "skills",
   "/notes": "notes",
   "/progress": "progress",
+  "/interview": "interview",
   "/settings": "settings",
 };
 
@@ -59,6 +61,7 @@ export function App() {
     case "skills": return <SkillsPage progress={learningProgress} />;
     case "notes": return <NotesPage />;
     case "progress": return <ProgressPage progress={learningProgress} />;
+    case "interview": return <InterviewPage />;
     case "settings": return (
       <SettingsPage
         onDataImported={(data) => {

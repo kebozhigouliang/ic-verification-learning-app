@@ -1,6 +1,11 @@
 import { createDefaultAppData, CURRENT_SCHEMA_VERSION } from "@/storage/defaults";
 import type { AppData, ThemeSetting } from "@/types/app-data";
 import type {
+  InterviewProgress,
+  UserAnswer,
+  UserAnswerStatus,
+} from "@/types/interview";
+import type {
   BugNote,
   NormalNote,
   NoteCategory,
@@ -136,6 +141,38 @@ function normalizeProgress(value: unknown, defaults: LearningProgress): Learning
     checkpoints: normalizeCheckpoints(source.checkpoints),
     hdlBitsCompleted: readNonNegativeNumber(source.hdlBitsCompleted),
   };
+}
+
+function normalizeUserAnswerStatus(value: unknown): UserAnswerStatus {
+  return value === "LEARNING" || value === "MASTERED" ? value : "TODO";
+}
+
+function normalizeInterviewProgress(
+  value: unknown,
+  fallbackUpdatedAt: string,
+): InterviewProgress {
+  if (!isRecord(value)) return {};
+  const answers: InterviewProgress = {};
+
+  Object.entries(value).forEach(([entryId, rawAnswer]) => {
+    if (!isRecord(rawAnswer)) return;
+    const questionId = typeof rawAnswer.questionId === "string"
+      ? rawAnswer.questionId.trim()
+      : entryId.trim();
+    if (!questionId || answers[questionId]) return;
+
+    const answer: UserAnswer = {
+      questionId,
+      myAnswer: typeof rawAnswer.myAnswer === "string" ? rawAnswer.myAnswer : "",
+      status: normalizeUserAnswerStatus(rawAnswer.status),
+      updatedAt: typeof rawAnswer.updatedAt === "string"
+        ? rawAnswer.updatedAt
+        : fallbackUpdatedAt,
+    };
+    answers[questionId] = answer;
+  });
+
+  return answers;
 }
 
 function normalizeTheme(value: unknown, fallback: ThemeSetting): ThemeSetting {
@@ -319,6 +356,10 @@ export function migrateAppData(value: unknown): AppData {
       theme: normalizeTheme(settings.theme, defaults.settings.theme),
     },
     progress: normalizeProgress(value.progress, defaults.progress),
+    interviewProgress: normalizeInterviewProgress(
+      value.interviewProgress,
+      defaults.updatedAt,
+    ),
     notes: normalizeNotes(value.notes),
     projects: normalizeProjects(value.projects, defaults.updatedAt),
   };
