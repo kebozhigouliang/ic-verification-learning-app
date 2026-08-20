@@ -1,7 +1,12 @@
 import { useState, type FormEvent } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageIntro } from "@/components/ui/PageIntro";
+import { projects as learningProjects } from "@/data/projects";
 import { useProjects } from "@/hooks/useProjects";
+import type {
+  ProjectLevel as LearningProjectLevel,
+  ProjectStatus as LearningProjectStatus,
+} from "@/types/project";
 import type { ProjectInput, ProjectRecord, ProjectStatus } from "@/types/projects";
 
 const projectStatuses: ProjectStatus[] = [
@@ -32,6 +37,14 @@ const emptyDraft: ProjectDraft = {
 
 function statusLabel(status: ProjectStatus): string {
   return status.replaceAll("_", " ").toUpperCase();
+}
+
+function learningStatusLabel(status: LearningProjectStatus): string {
+  return status.toUpperCase();
+}
+
+function learningLevelLabel(level: LearningProjectLevel): string {
+  return level.toUpperCase();
 }
 
 function draftFromProject(project: ProjectRecord): ProjectDraft {
@@ -121,14 +134,75 @@ export function ProjectsPage() {
   return (
     <AppShell activePage="projects">
       <PageIntro
-        code="PROJECTS / LOCAL"
+        code="PROJECTS / ROADMAP"
         title="项目"
-        description="记录学习项目、验证项目、Git 仓库和当前遇到的问题。"
+        description="查看 IC Verification 学习项目，并继续管理已有的本地项目记录。"
       />
+
+      <section className="learning-projects" aria-labelledby="learning-projects-title">
+        <header className="learning-projects-header">
+          <div>
+            <span>READ ONLY</span>
+            <h2 id="learning-projects-title">LEARNING PROJECTS</h2>
+          </div>
+          <strong>{learningProjects.length}</strong>
+        </header>
+        <div className="learning-project-list">
+          {learningProjects.map((project) => (
+            <article className="learning-project-card" key={project.id}>
+              <header>
+                <div>
+                  <div className="learning-project-badges">
+                    <span className={`learning-project-level level-${project.level}`}>
+                      {learningLevelLabel(project.level)}
+                    </span>
+                    <span className={`learning-project-status status-${project.status}`}>
+                      {learningStatusLabel(project.status)}
+                    </span>
+                  </div>
+                  <h3>{project.title}</h3>
+                  <p>{project.description}</p>
+                </div>
+                <code>{project.relatedRoadmapId}</code>
+              </header>
+
+              <div className="learning-project-skills" aria-label={`${project.title} skills`}>
+                {project.skills.map((skill) => <span key={skill}>{skill}</span>)}
+              </div>
+
+              <div className="learning-project-progress">
+                <div>
+                  <span>PROGRESS</span>
+                  <strong>{project.progress}%</strong>
+                </div>
+                <div
+                  aria-label={`${project.progress}% complete`}
+                  aria-valuemax={100}
+                  aria-valuemin={0}
+                  aria-valuenow={project.progress}
+                  className="learning-project-progress-track"
+                  role="progressbar"
+                >
+                  <span style={{ width: `${project.progress}%` }} />
+                </div>
+              </div>
+
+              <div className="learning-project-milestones">
+                <span>MILESTONES</span>
+                <ul>
+                  {project.milestones.map((milestone) => (
+                    <li key={milestone}>{milestone}</li>
+                  ))}
+                </ul>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
 
       <section className="projects-toolbar" aria-label="Project controls">
         <div>
-          <span>PROJECT COUNT</span>
+          <span>LOCAL PROJECT RECORDS</span>
           <strong>{projects.length}</strong>
         </div>
         <button onClick={startCreate} type="button">+ NEW PROJECT</button>

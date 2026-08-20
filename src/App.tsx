@@ -8,12 +8,14 @@ import { ProgressPage } from "@/pages/ProgressPage";
 import { ProjectsPage } from "@/pages/ProjectsPage";
 import { RoadmapPage } from "@/pages/RoadmapPage";
 import { SettingsPage } from "@/pages/SettingsPage";
+import { SkillsPage } from "@/pages/SkillsPage";
 import { TodayPage } from "@/pages/TodayPage";
 
 const routePages: Record<string, PageId> = {
   "/": "today",
   "/roadmap": "roadmap",
   "/projects": "projects",
+  "/skills": "skills",
   "/notes": "notes",
   "/progress": "progress",
   "/settings": "settings",
@@ -54,6 +56,7 @@ export function App() {
   switch (page) {
     case "roadmap": return <RoadmapPage />;
     case "projects": return <ProjectsPage />;
+    case "skills": return <SkillsPage progress={learningProgress} />;
     case "notes": return <NotesPage />;
     case "progress": return <ProgressPage progress={learningProgress} />;
     case "settings": return (

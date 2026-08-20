@@ -1,6 +1,14 @@
 import { createDefaultAppData, CURRENT_SCHEMA_VERSION } from "@/storage/defaults";
 import type { AppData, ThemeSetting } from "@/types/app-data";
-import type { BugNote, NormalNote, NoteEntry, QuestionNote } from "@/types/notes";
+import type {
+  BugNote,
+  NormalNote,
+  NoteCategory,
+  NoteEntry,
+  NoteMetadata,
+  NoteType,
+  QuestionNote,
+} from "@/types/notes";
 import type { ProjectRecord, ProjectStatus } from "@/types/projects";
 import type {
   CheckpointResult,
@@ -143,6 +151,47 @@ function hasNoteBase(value: Record<string, unknown>): boolean {
     && typeof value.updatedAt === "string";
 }
 
+function defaultNoteCategory(type: NoteType): NoteCategory {
+  if (type === "bug") return "DEBUG";
+  if (type === "question") return "INTERVIEW";
+  return "RTL";
+}
+
+function normalizeNoteCategory(value: unknown, type: NoteType): NoteCategory {
+  return value === "RTL"
+    || value === "VERIFICATION"
+    || value === "DEBUG"
+    || value === "INTERVIEW"
+    ? value
+    : defaultNoteCategory(type);
+}
+
+function normalizeStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return [...new Set(value.flatMap((entry) => (
+    typeof entry === "string" && entry.trim() ? [entry.trim()] : []
+  )))];
+}
+
+function normalizeNoteMetadata(
+  value: Record<string, unknown>,
+  type: NoteType,
+  projectId?: string,
+): NoteMetadata {
+  const relatedProjectIds = normalizeStringArray(value.relatedProjectIds);
+  if (projectId && !relatedProjectIds.includes(projectId)) {
+    relatedProjectIds.push(projectId);
+  }
+
+  return {
+    category: normalizeNoteCategory(value.category, type),
+    tags: normalizeStringArray(value.tags),
+    relatedSkillIds: normalizeStringArray(value.relatedSkillIds),
+    relatedProjectIds,
+    relatedRoadmapIds: normalizeStringArray(value.relatedRoadmapIds),
+  };
+}
+
 function normalizeNote(value: unknown): NoteEntry | undefined {
   if (!isRecord(value) || !hasNoteBase(value)) return undefined;
 
@@ -155,6 +204,7 @@ function normalizeNote(value: unknown): NoteEntry | undefined {
       resolved: typeof value.resolved === "boolean" ? value.resolved : false,
       createdAt: value.createdAt as string,
       updatedAt: value.updatedAt as string,
+      ...normalizeNoteMetadata(value, "question"),
     };
     return note;
   }
@@ -167,6 +217,7 @@ function normalizeNote(value: unknown): NoteEntry | undefined {
       content: value.content,
       createdAt: value.createdAt as string,
       updatedAt: value.updatedAt as string,
+      ...normalizeNoteMetadata(value, "note"),
     };
     return note;
   }
@@ -178,6 +229,7 @@ function normalizeNote(value: unknown): NoteEntry | undefined {
     && typeof value.solution === "string"
     && typeof value.learned === "string"
   ) {
+    const projectId = typeof value.projectId === "string" ? value.projectId : undefined;
     const note: BugNote = {
       id: value.id as string,
       type: "bug",
@@ -188,8 +240,9 @@ function normalizeNote(value: unknown): NoteEntry | undefined {
       learned: value.learned,
       createdAt: value.createdAt as string,
       updatedAt: value.updatedAt as string,
+      ...normalizeNoteMetadata(value, "bug", projectId),
     };
-    if (typeof value.projectId === "string") note.projectId = value.projectId;
+    if (projectId) note.projectId = projectId;
     return note;
   }
 

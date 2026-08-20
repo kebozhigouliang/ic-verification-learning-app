@@ -1,6 +1,23 @@
 export type NoteType = "question" | "note" | "bug";
+export type NoteCategory = "RTL" | "VERIFICATION" | "DEBUG" | "INTERVIEW";
 
-export interface QuestionNote {
+export interface NoteMetadata {
+  category: NoteCategory;
+  tags: string[];
+  relatedSkillIds: string[];
+  relatedProjectIds: string[];
+  relatedRoadmapIds: string[];
+}
+
+export interface NoteMetadataInput {
+  category?: NoteCategory;
+  tags?: string[];
+  relatedSkillIds?: string[];
+  relatedProjectIds?: string[];
+  relatedRoadmapIds?: string[];
+}
+
+export interface QuestionNote extends NoteMetadata {
   id: string;
   type: "question";
   date: string;
@@ -10,7 +27,7 @@ export interface QuestionNote {
   updatedAt: string;
 }
 
-export interface NormalNote {
+export interface NormalNote extends NoteMetadata {
   id: string;
   type: "note";
   date: string;
@@ -19,7 +36,7 @@ export interface NormalNote {
   updatedAt: string;
 }
 
-export interface BugNote {
+export interface BugNote extends NoteMetadata {
   id: string;
   type: "bug";
   date: string;
@@ -34,7 +51,7 @@ export interface BugNote {
 
 export type NoteEntry = QuestionNote | NormalNote | BugNote;
 
-export type CreateNoteInput =
+export type CreateNoteInput = NoteMetadataInput & (
   | { type: "question"; content: string }
   | { type: "note"; content: string }
   | {
@@ -44,9 +61,10 @@ export type CreateNoteInput =
     rootCause: string;
     solution: string;
     learned: string;
-  };
+  }
+);
 
-export type UpdateNoteInput =
+export type UpdateNoteInput = NoteMetadataInput & (
   | { type: "question"; content: string; resolved?: boolean }
   | { type: "note"; content: string }
   | {
@@ -56,4 +74,5 @@ export type UpdateNoteInput =
     rootCause: string;
     solution: string;
     learned: string;
-  };
+  }
+);

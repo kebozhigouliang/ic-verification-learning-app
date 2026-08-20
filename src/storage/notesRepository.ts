@@ -2,8 +2,11 @@ import { loadAppData, saveAppData } from "@/storage/repository";
 import type {
   BugNote,
   CreateNoteInput,
+  NoteCategory,
   NormalNote,
   NoteEntry,
+  NoteMetadata,
+  NoteType,
   QuestionNote,
   UpdateNoteInput,
 } from "@/types/notes";
@@ -17,6 +20,38 @@ function requiredText(value: string, field: string): string {
 function optionalText(value: string | undefined): string | undefined {
   const text = value?.trim();
   return text ? text : undefined;
+}
+
+function defaultNoteCategory(type: NoteType): NoteCategory {
+  if (type === "bug") return "DEBUG";
+  if (type === "question") return "INTERVIEW";
+  return "RTL";
+}
+
+function normalizeTextList(values: readonly string[] | undefined): string[] {
+  if (!values) return [];
+  return [...new Set(values.map((value) => value.trim()).filter(Boolean))];
+}
+
+function normalizeMetadata(
+  input: CreateNoteInput | UpdateNoteInput,
+  fallback?: NoteMetadata,
+  projectId?: string,
+): NoteMetadata {
+  const relatedProjectIds = normalizeTextList(
+    input.relatedProjectIds ?? fallback?.relatedProjectIds,
+  );
+  if (projectId && !relatedProjectIds.includes(projectId)) {
+    relatedProjectIds.push(projectId);
+  }
+
+  return {
+    category: input.category ?? fallback?.category ?? defaultNoteCategory(input.type),
+    tags: normalizeTextList(input.tags ?? fallback?.tags),
+    relatedSkillIds: normalizeTextList(input.relatedSkillIds ?? fallback?.relatedSkillIds),
+    relatedProjectIds,
+    relatedRoadmapIds: normalizeTextList(input.relatedRoadmapIds ?? fallback?.relatedRoadmapIds),
+  };
 }
 
 function formatLocalDate(date: Date): string {
@@ -49,11 +84,13 @@ function nextUpdatedAt(previousUpdatedAt: string): string {
 
 function createNote(input: CreateNoteInput, existingIds: ReadonlySet<string>): NoteEntry {
   const now = new Date();
+  const projectId = input.type === "bug" ? optionalText(input.projectId) : undefined;
   const base = {
     id: createNoteId(now, existingIds),
     date: formatLocalDate(now),
     createdAt: now.toISOString(),
     updatedAt: now.toISOString(),
+    ...normalizeMetadata(input, undefined, projectId),
   };
 
   if (input.type === "question") {
@@ -81,7 +118,6 @@ function createNote(input: CreateNoteInput, existingIds: ReadonlySet<string>): N
     solution: requiredText(input.solution, "Solution"),
     learned: requiredText(input.learned, "Learned"),
   };
-  const projectId = optionalText(input.projectId);
   if (projectId) note.projectId = projectId;
   return note;
 }
@@ -92,10 +128,13 @@ function updateExistingNote(note: NoteEntry, input: UpdateNoteInput): NoteEntry 
   }
 
   const updatedAt = nextUpdatedAt(note.updatedAt);
+  const projectId = input.type === "bug" ? optionalText(input.projectId) : undefined;
+  const metadata = normalizeMetadata(input, note, projectId);
 
   if (note.type === "question" && input.type === "question") {
     const updated: QuestionNote = {
       ...note,
+      ...metadata,
       content: requiredText(input.content, "Question"),
       resolved: input.resolved ?? note.resolved,
       updatedAt,
@@ -106,6 +145,7 @@ function updateExistingNote(note: NoteEntry, input: UpdateNoteInput): NoteEntry 
   if (note.type === "note" && input.type === "note") {
     const updated: NormalNote = {
       ...note,
+      ...metadata,
       content: requiredText(input.content, "Note"),
       updatedAt,
     };
@@ -115,13 +155,13 @@ function updateExistingNote(note: NoteEntry, input: UpdateNoteInput): NoteEntry 
   if (note.type === "bug" && input.type === "bug") {
     const updated: BugNote = {
       ...note,
+      ...metadata,
       symptom: requiredText(input.symptom, "Symptom"),
       rootCause: requiredText(input.rootCause, "Root Cause"),
       solution: requiredText(input.solution, "Solution"),
       learned: requiredText(input.learned, "Learned"),
       updatedAt,
     };
-    const projectId = optionalText(input.projectId);
     if (projectId) updated.projectId = projectId;
     else delete updated.projectId;
     return updated;

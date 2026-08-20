@@ -1,0 +1,83 @@
+import type { Skill } from "@/types/skill";
+
+export const skills: readonly Skill[] = [
+  {
+    id: "skill-digital-logic",
+    name: "Digital Logic",
+    category: "foundation",
+    relatedRoadmapIds: ["w01d01", "w01d02", "w01d03", "w01d04", "w01d06", "w01d07"],
+    relatedProjectIds: ["project-basic-logic-library"],
+  },
+  {
+    id: "skill-verilog",
+    name: "Verilog",
+    category: "language",
+    relatedRoadmapIds: [
+      "w01d01",
+      "w01d05",
+      "w01d06",
+      "w01d07",
+      "roadmap-week02-learn-verilog-syntax",
+      "roadmap-week02-practice-hdlbits-verilog",
+      "roadmap-week02-build-uart-transmitter",
+    ],
+    relatedProjectIds: ["project-basic-logic-library", "project-uart-verification"],
+  },
+  {
+    id: "skill-systemverilog",
+    name: "SystemVerilog",
+    category: "language",
+    relatedRoadmapIds: [],
+    relatedProjectIds: ["project-uart-verification", "project-fifo-verification"],
+  },
+  {
+    id: "skill-testbench",
+    name: "Testbench",
+    category: "verification",
+    relatedRoadmapIds: [
+      "w01d02",
+      "w01d03",
+      "w01d04",
+      "w01d05",
+      "w01d06",
+      "w01d07",
+      "roadmap-week03-build-uart-verification-environment",
+    ],
+    relatedProjectIds: ["project-uart-verification"],
+  },
+  {
+    id: "skill-debug",
+    name: "Debug",
+    category: "verification",
+    relatedRoadmapIds: ["w01d06", "roadmap-week04-build-fifo-rtl-testbench"],
+    relatedProjectIds: ["project-fifo-verification"],
+  },
+  {
+    id: "skill-coverage",
+    name: "Coverage",
+    category: "verification",
+    relatedRoadmapIds: [],
+    relatedProjectIds: ["project-fifo-verification"],
+  },
+  {
+    id: "skill-uvm",
+    name: "UVM",
+    category: "methodology",
+    relatedRoadmapIds: ["stage03"],
+    relatedProjectIds: ["project-apb-slave-verification"],
+  },
+  {
+    id: "skill-apb",
+    name: "APB",
+    category: "protocol",
+    relatedRoadmapIds: ["stage04"],
+    relatedProjectIds: ["project-apb-slave-verification"],
+  },
+  {
+    id: "skill-axi",
+    name: "AXI",
+    category: "protocol",
+    relatedRoadmapIds: ["stage04"],
+    relatedProjectIds: [],
+  },
+];
