@@ -1,10 +1,10 @@
 import type { PassCriterion } from "@/types/learning";
+import type { LearningResource } from "@/types/resource";
 
-interface RoadmapResource {
-  id: string;
-  title: string;
-  type: "document";
-  scope: string;
+export type RoadmapResourceCategory = "learn" | "practice" | "build";
+
+export interface RoadmapResource extends LearningResource {
+  category: RoadmapResourceCategory;
 }
 
 export interface RoadmapItem {
@@ -44,6 +44,10 @@ export interface RoadmapWeek {
   id: string;
   title: string;
   goal: string;
+  topics: string[];
+  tasks: RoadmapTask[];
+  projectReferences: string[];
+  resources: RoadmapResource[];
   days: RoadmapDay[];
 }
 
