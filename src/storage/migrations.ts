@@ -15,12 +15,15 @@ import type {
   QuestionNote,
 } from "@/types/notes";
 import type { ProjectRecord, ProjectStatus } from "@/types/projects";
+import type { StudySession, StudyType } from "@/types/study-session";
 import type {
+  BuildVerification,
   CheckpointResult,
   DailyStudyTime,
   DayProgress,
   LearningProgress,
   MasteryProgress,
+  ResourceProgress,
   TaskProgress,
   TaskStatus,
 } from "@/types/progress";
@@ -75,6 +78,36 @@ function normalizeMasteryProgress(value: unknown): MasteryProgress {
   );
 }
 
+function normalizeResourceStates(value: unknown): Record<string, ResourceProgress> {
+  if (!isRecord(value)) return {};
+
+  return Object.fromEntries(Object.entries(value).flatMap(([resourceId, rawProgress]) => {
+    if (!isRecord(rawProgress)) return [];
+    const progress: ResourceProgress = {
+      resourceOpened: rawProgress.resourceOpened === true,
+      resourceCompleted: rawProgress.resourceCompleted === true,
+    };
+    if (typeof rawProgress.openedAt === "string") progress.openedAt = rawProgress.openedAt;
+    if (typeof rawProgress.completedAt === "string") progress.completedAt = rawProgress.completedAt;
+    return [[resourceId, progress]];
+  }));
+}
+
+function normalizeBuildVerifications(value: unknown): Record<string, BuildVerification> {
+  if (!isRecord(value)) return {};
+
+  return Object.fromEntries(Object.entries(value).flatMap(([buildId, rawVerification]) => {
+    if (!isRecord(rawVerification)) return [];
+    const verification: BuildVerification = {
+      simulationSuccess: rawVerification.simulationSuccess === true,
+    };
+    if (typeof rawVerification.verifiedAt === "string") {
+      verification.verifiedAt = rawVerification.verifiedAt;
+    }
+    return [[buildId, verification]];
+  }));
+}
+
 function normalizeStudyTime(value: unknown): DailyStudyTime {
   const source = isRecord(value) ? value : {};
   return {
@@ -87,8 +120,24 @@ function normalizeStudyTime(value: unknown): DailyStudyTime {
 
 function normalizeDayProgress(value: unknown): DayProgress {
   const source = isRecord(value) ? value : {};
+  const taskStates = normalizeTaskStates(source.taskStates);
+  const normalizedResourceStates = normalizeResourceStates(source.resourceStates);
+  const resourceStates = Object.keys(normalizedResourceStates).length > 0
+    ? normalizedResourceStates
+    : Object.fromEntries(Object.entries(taskStates).map(([taskId, taskProgress]) => [
+      taskId,
+      {
+        resourceOpened: taskProgress.status !== "todo",
+        resourceCompleted: taskProgress.status === "pass",
+        openedAt: taskProgress.completedAt,
+        completedAt: taskProgress.status === "pass" ? taskProgress.completedAt : undefined,
+      },
+    ]));
   const progress: DayProgress = {
-    taskStates: normalizeTaskStates(source.taskStates),
+    taskStates,
+    resourceStates,
+    softwareStates: normalizeTaskStates(source.softwareStates),
+    buildVerifications: normalizeBuildVerifications(source.buildVerifications),
     passCriteria: normalizeMasteryProgress(source.passCriteria),
     studyTime: normalizeStudyTime(source.studyTime),
   };
@@ -344,6 +393,53 @@ function normalizeProjects(value: unknown, fallbackUpdatedAt: string): ProjectRe
   });
 }
 
+function normalizeStudyType(value: unknown): StudyType | undefined {
+  return value === "LEARN"
+    || value === "PRACTICE"
+    || value === "BUILD"
+    || value === "DEBUG"
+    ? value
+    : undefined;
+}
+
+function normalizeStudySession(value: unknown): StudySession | undefined {
+  if (!isRecord(value)) return undefined;
+  const type = normalizeStudyType(value.type);
+  if (
+    typeof value.id !== "string"
+    || typeof value.date !== "string"
+    || !type
+    || typeof value.duration !== "number"
+    || !Number.isFinite(value.duration)
+    || value.duration < 0
+    || typeof value.startTime !== "string"
+    || typeof value.endTime !== "string"
+  ) return undefined;
+
+  const session: StudySession = {
+    id: value.id,
+    date: value.date,
+    type,
+    duration: Math.floor(value.duration),
+    startTime: value.startTime,
+    endTime: value.endTime,
+  };
+  if (typeof value.relatedDayId === "string") session.relatedDayId = value.relatedDayId;
+  if (typeof value.relatedTaskId === "string") session.relatedTaskId = value.relatedTaskId;
+  return session;
+}
+
+function normalizeStudySessions(value: unknown): StudySession[] {
+  if (!Array.isArray(value)) return [];
+  const seenIds = new Set<string>();
+  return value.flatMap((rawSession) => {
+    const session = normalizeStudySession(rawSession);
+    if (!session || seenIds.has(session.id)) return [];
+    seenIds.add(session.id);
+    return [session];
+  });
+}
+
 export function migrateAppData(value: unknown): AppData {
   const defaults = createDefaultAppData();
   if (!isRecord(value)) return defaults;
@@ -362,5 +458,6 @@ export function migrateAppData(value: unknown): AppData {
     ),
     notes: normalizeNotes(value.notes),
     projects: normalizeProjects(value.projects, defaults.updatedAt),
+    studySessions: normalizeStudySessions(value.studySessions),
   };
 }

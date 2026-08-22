@@ -34,18 +34,27 @@ export function App() {
     availableDays,
     canGoNext,
     canGoPrevious,
+    completeBuildTask,
     currentLearningDay,
+    currentDayProgress,
     getPassCriterionState,
+    getBuildVerification,
+    getResourceProgress,
+    getSoftwareStatus,
     getTaskStatus,
     goToNextDay,
     goToPreviousDay,
     learningProgress,
+    markResourceOpened,
+    recordStudySession,
     replaceAppData,
     resetProgress,
     selectDay,
+    setResourceCompleted,
     studyTime,
     togglePassCriterion,
-    updateStudyTime,
+    updateBuildVerification,
+    updateSoftwareStatus,
     updateTaskStatus,
   } = useLearningProgress();
 
@@ -81,14 +90,23 @@ export function App() {
           canGoNext={canGoNext}
           canGoPrevious={canGoPrevious}
           day={currentLearningDay}
+          dayProgress={currentDayProgress!}
+          completeBuildTask={completeBuildTask}
+          getBuildVerification={getBuildVerification}
           getPassCriterionState={getPassCriterionState}
+          getResourceProgress={getResourceProgress}
+          getSoftwareStatus={getSoftwareStatus}
           getTaskStatus={getTaskStatus}
+          markResourceOpened={markResourceOpened}
           onNextDay={goToNextDay}
           onPreviousDay={goToPreviousDay}
           onSelectDay={selectDay}
+          onStudySessionSaved={recordStudySession}
           studyTime={studyTime}
+          setResourceCompleted={setResourceCompleted}
           togglePassCriterion={togglePassCriterion}
-          updateStudyTime={updateStudyTime}
+          updateBuildVerification={updateBuildVerification}
+          updateSoftwareStatus={updateSoftwareStatus}
           updateTaskStatus={updateTaskStatus}
         />
       )

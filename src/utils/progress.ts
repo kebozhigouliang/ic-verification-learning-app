@@ -1,6 +1,7 @@
 import type { LearningDay, LearningWeek } from "@/types/learning";
 import type {
   DailyStudyTime,
+  DayProgress,
   LearningProgress,
   StudyCategory,
   TaskStatus,
@@ -23,6 +24,19 @@ export interface MasteryProgressSummary {
   completed: number;
   total: number;
   percentage: number;
+}
+
+export interface DayCompletionSummary {
+  complete: boolean;
+  hasActivity: boolean;
+  completedRequirements: number;
+  totalRequirements: number;
+  percentage: number;
+  requiredResources: TaskProgressSummary;
+  requiredSoftware: TaskProgressSummary;
+  practice: TaskProgressSummary;
+  build: TaskProgressSummary;
+  mastery: MasteryProgressSummary;
 }
 
 export interface DayProgressSummary {
@@ -81,6 +95,72 @@ export function calculateStudyTimeTotal(studyTime: DailyStudyTime): number {
     + studyTime.debug;
 }
 
+export function calculateDayCompletion(
+  day: LearningDay,
+  dayProgress?: DayProgress,
+): DayCompletionSummary {
+  const requiredResources = day.learn.filter((resource) => resource.required !== false);
+  const requiredSoftware = (day.softwareRequirements ?? []).filter((software) => software.required);
+  const requiredPractice = day.practice.filter((task) => task.required !== false);
+
+  const resourceSummary = calculateTaskProgress(requiredResources.map((resource) => (
+    dayProgress?.resourceStates[resource.id]?.resourceCompleted ? "pass" : "todo"
+  )));
+  const softwareSummary = calculateTaskProgress(requiredSoftware.map((software) => (
+    dayProgress?.softwareStates[software.id]?.status ?? "todo"
+  )));
+  const practiceSummary = calculateTaskProgress(requiredPractice.map((task) => (
+    dayProgress?.taskStates[task.id]?.status ?? "todo"
+  )));
+  const buildSummary = calculateTaskProgress(day.build.map((task) => (
+    (dayProgress?.taskStates[task.id]?.status === "pass"
+      && (!task.verificationMethod
+        || dayProgress?.buildVerifications[task.id]?.simulationSuccess))
+      ? "pass"
+      : (dayProgress?.taskStates[task.id]?.status ?? "todo") === "todo" ? "todo" : "doing"
+  )));
+  const mastery = calculateMasteryProgress(day.passCriteria.map((criterion) => (
+    dayProgress?.passCriteria[criterion.id] ?? false
+  )));
+  const completedRequirements = resourceSummary.passed
+    + softwareSummary.passed
+    + practiceSummary.passed
+    + buildSummary.passed
+    + mastery.completed;
+  const totalRequirements = resourceSummary.total
+    + softwareSummary.total
+    + practiceSummary.total
+    + buildSummary.total
+    + mastery.total;
+  const hasActivity = day.learn.some((resource) => {
+    const progress = dayProgress?.resourceStates[resource.id];
+    return progress?.resourceOpened || progress?.resourceCompleted;
+  }) || (day.softwareRequirements ?? []).some((software) => (
+    (dayProgress?.softwareStates[software.id]?.status ?? "todo") !== "todo"
+  )) || [...day.practice, ...day.build].some((task) => (
+    (dayProgress?.taskStates[task.id]?.status ?? "todo") !== "todo"
+  )) || day.build.some((task) => (
+    dayProgress?.buildVerifications[task.id]?.simulationSuccess ?? false
+  )) || day.passCriteria.some((criterion) => (
+    dayProgress?.passCriteria[criterion.id] ?? false
+  ));
+
+  return {
+    complete: totalRequirements > 0 && completedRequirements === totalRequirements,
+    hasActivity,
+    completedRequirements,
+    totalRequirements,
+    percentage: totalRequirements === 0
+      ? 0
+      : Math.floor((completedRequirements / totalRequirements) * 100),
+    requiredResources: resourceSummary,
+    requiredSoftware: softwareSummary,
+    practice: practiceSummary,
+    build: buildSummary,
+    mastery,
+  };
+}
+
 function getCategoryTasks(
   day: LearningDay,
   category: StudyCategory,
@@ -120,9 +200,7 @@ export function calculateDayProgress(
 ): DayProgressSummary {
   const tasks = calculateTaskProgress(getTaskStatuses(day, progress));
   const mastery = calculateMasteryProgress(getCriterionStates(day, progress));
-  const taskComplete = tasks.total === 0 || tasks.passed === tasks.total;
-  const masteryComplete = mastery.total === 0 || mastery.completed === mastery.total;
-  const hasTrackedItems = tasks.total + mastery.total > 0;
+  const completion = calculateDayCompletion(day, progress.days[day.id]);
 
   return {
     dayId: day.id,
@@ -131,7 +209,7 @@ export function calculateDayProgress(
     tasks,
     mastery,
     studyMinutes: calculateStudyTimeTotal(getStudyTime(day, progress)),
-    status: hasTrackedItems && taskComplete && masteryComplete ? "pass" : "in_progress",
+    status: completion.complete ? "pass" : "in_progress",
   };
 }
 

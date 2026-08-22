@@ -1,4 +1,11 @@
-import type { LearningResource, PassCriterion } from "@/types/learning";
+import type { PassCriterion } from "@/types/learning";
+
+interface RoadmapResource {
+  id: string;
+  title: string;
+  type: "document";
+  scope: string;
+}
 
 export interface RoadmapItem {
   id: string;
@@ -28,7 +35,7 @@ export interface RoadmapDay {
   id: string;
   title: string;
   topics: string[];
-  resources: LearningResource[];
+  resources: RoadmapResource[];
   tasks: RoadmapTask[];
   passCriteria: PassCriterion[];
 }

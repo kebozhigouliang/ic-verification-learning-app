@@ -2,11 +2,15 @@ import { useCallback, useEffect, useState } from "react";
 import { getLearningDay, initialLearningSelection, weeks } from "@/data/weeks";
 import { loadAppData, resetAppData, saveAppData } from "@/storage/repository";
 import type { LearningDay } from "@/types/learning";
+import type { StudySession } from "@/types/study-session";
 import type {
+  BuildVerification,
   DailyStudyTime,
   DayProgress,
   LearningProgress,
   MasteryProgress,
+  ResourceProgress,
+  SoftwareProgress,
   StudyCategory,
   TaskProgress,
   TaskStatus,
@@ -33,13 +37,42 @@ function createInitialMasteryProgress(day: LearningDay): MasteryProgress {
   );
 }
 
+function createInitialResourceStates(day: LearningDay): Record<string, ResourceProgress> {
+  return Object.fromEntries(day.learn.map((resource) => [resource.id, {
+    resourceOpened: false,
+    resourceCompleted: false,
+  }]));
+}
+
+function createInitialSoftwareStates(day: LearningDay): Record<string, SoftwareProgress> {
+  return Object.fromEntries((day.softwareRequirements ?? []).map((software) => [
+    software.id,
+    { status: "todo" },
+  ]));
+}
+
+function createInitialBuildVerifications(day: LearningDay): Record<string, BuildVerification> {
+  return Object.fromEntries(day.build.map((buildTask) => [buildTask.id, {
+    simulationSuccess: false,
+  }]));
+}
+
 function createInitialStudyTime(): DailyStudyTime {
   return { learn: 0, practice: 0, build: 0, debug: 0 };
+}
+
+function getLearningDayById(dayId: string): LearningDay | undefined {
+  return Object.values(weeks)
+    .flatMap((week) => week.days)
+    .find((learningDay) => learningDay.id === dayId);
 }
 
 function createInitialDayProgress(day: LearningDay): DayProgress {
   return {
     taskStates: createInitialTaskStates(day),
+    resourceStates: createInitialResourceStates(day),
+    softwareStates: createInitialSoftwareStates(day),
+    buildVerifications: createInitialBuildVerifications(day),
     passCriteria: createInitialMasteryProgress(day),
     studyTime: createInitialStudyTime(),
   };
@@ -49,10 +82,24 @@ function mergeDayProgress(day: LearningDay, current?: DayProgress): DayProgress 
   const defaults = createInitialDayProgress(day);
   if (!current) return defaults;
 
+  const resourceStates = Object.fromEntries(day.learn.map((resource) => {
+    const existing = current.resourceStates?.[resource.id];
+    if (existing) return [resource.id, existing];
+
+    const legacyStatus = current.taskStates?.[resource.id]?.status ?? "todo";
+    return [resource.id, {
+      resourceOpened: legacyStatus !== "todo",
+      resourceCompleted: legacyStatus === "pass",
+    }];
+  }));
+
   return {
     ...defaults,
     ...current,
     taskStates: { ...defaults.taskStates, ...current.taskStates },
+    resourceStates: { ...defaults.resourceStates, ...resourceStates },
+    softwareStates: { ...defaults.softwareStates, ...current.softwareStates },
+    buildVerifications: { ...defaults.buildVerifications, ...current.buildVerifications },
     passCriteria: { ...defaults.passCriteria, ...current.passCriteria },
     studyTime: { ...defaults.studyTime, ...current.studyTime },
   };
@@ -131,6 +178,162 @@ export function useLearningProgress() {
     });
   }, [day]);
 
+  const getResourceProgress = useCallback((resourceId: string): ResourceProgress => {
+    if (!day) return { resourceOpened: false, resourceCompleted: false };
+    return dayProgressById[day.id]?.resourceStates[resourceId]
+      ?? { resourceOpened: false, resourceCompleted: false };
+  }, [day, dayProgressById]);
+
+  const markResourceOpened = useCallback((resourceId: string) => {
+    if (!day) return;
+    const now = new Date().toISOString();
+    setDayProgressById((current) => {
+      const currentDayProgress = mergeDayProgress(day, current[day.id]);
+      const taskProgress = currentDayProgress.taskStates[resourceId] ?? { status: "todo" };
+      return {
+        ...current,
+        [day.id]: {
+          ...currentDayProgress,
+          resourceStates: {
+            ...currentDayProgress.resourceStates,
+            [resourceId]: {
+              ...currentDayProgress.resourceStates[resourceId],
+              resourceOpened: true,
+              openedAt: currentDayProgress.resourceStates[resourceId]?.openedAt ?? now,
+            },
+          },
+          taskStates: {
+            ...currentDayProgress.taskStates,
+            [resourceId]: taskProgress.status === "todo"
+              ? { ...taskProgress, status: "doing" }
+              : taskProgress,
+          },
+        },
+      };
+    });
+  }, [day]);
+
+  const setResourceCompleted = useCallback((resourceId: string, completed: boolean) => {
+    if (!day) return;
+    const now = new Date().toISOString();
+    setDayProgressById((current) => {
+      const currentDayProgress = mergeDayProgress(day, current[day.id]);
+      const resourceProgress = currentDayProgress.resourceStates[resourceId]
+        ?? { resourceOpened: false, resourceCompleted: false };
+      return {
+        ...current,
+        [day.id]: {
+          ...currentDayProgress,
+          resourceStates: {
+            ...currentDayProgress.resourceStates,
+            [resourceId]: {
+              ...resourceProgress,
+              resourceOpened: completed || resourceProgress.resourceOpened,
+              resourceCompleted: completed,
+              openedAt: completed
+                ? (resourceProgress.openedAt ?? now)
+                : resourceProgress.openedAt,
+              completedAt: completed ? now : undefined,
+            },
+          },
+          taskStates: {
+            ...currentDayProgress.taskStates,
+            [resourceId]: {
+              status: completed
+                ? "pass"
+                : resourceProgress.resourceOpened ? "doing" : "todo",
+              completedAt: completed ? now : undefined,
+            },
+          },
+        },
+      };
+    });
+  }, [day]);
+
+  const getSoftwareStatus = useCallback((softwareId: string): TaskStatus => {
+    if (!day) return "todo";
+    return dayProgressById[day.id]?.softwareStates[softwareId]?.status ?? "todo";
+  }, [day, dayProgressById]);
+
+  const updateSoftwareStatus = useCallback((softwareId: string, status: TaskStatus) => {
+    if (!day) return;
+    setDayProgressById((current) => {
+      const currentDayProgress = mergeDayProgress(day, current[day.id]);
+      return {
+        ...current,
+        [day.id]: {
+          ...currentDayProgress,
+          softwareStates: {
+            ...currentDayProgress.softwareStates,
+            [softwareId]: {
+              status,
+              completedAt: status === "pass" ? new Date().toISOString() : undefined,
+            },
+          },
+        },
+      };
+    });
+  }, [day]);
+
+  const getBuildVerification = useCallback((buildId: string): BuildVerification => {
+    if (!day) return { simulationSuccess: false };
+    return dayProgressById[day.id]?.buildVerifications[buildId]
+      ?? { simulationSuccess: false };
+  }, [day, dayProgressById]);
+
+  const updateBuildVerification = useCallback((buildId: string, simulationSuccess: boolean) => {
+    if (!day) return;
+    const now = new Date().toISOString();
+    setDayProgressById((current) => {
+      const currentDayProgress = mergeDayProgress(day, current[day.id]);
+      const taskProgress = currentDayProgress.taskStates[buildId] ?? { status: "todo" };
+      return {
+        ...current,
+        [day.id]: {
+          ...currentDayProgress,
+          buildVerifications: {
+            ...currentDayProgress.buildVerifications,
+            [buildId]: {
+              simulationSuccess,
+              verifiedAt: simulationSuccess ? now : undefined,
+            },
+          },
+          taskStates: {
+            ...currentDayProgress.taskStates,
+            [buildId]: {
+              status: simulationSuccess
+                ? (taskProgress.status === "todo" ? "doing" : taskProgress.status)
+                : (taskProgress.status === "pass" ? "doing" : taskProgress.status),
+              completedAt: simulationSuccess && taskProgress.status === "pass"
+                ? taskProgress.completedAt
+                : undefined,
+            },
+          },
+        },
+      };
+    });
+  }, [day]);
+
+  const completeBuildTask = useCallback((buildId: string) => {
+    if (!day) return;
+    const now = new Date().toISOString();
+    setDayProgressById((current) => {
+      const currentDayProgress = mergeDayProgress(day, current[day.id]);
+      if (!currentDayProgress.buildVerifications[buildId]?.simulationSuccess) return current;
+
+      return {
+        ...current,
+        [day.id]: {
+          ...currentDayProgress,
+          taskStates: {
+            ...currentDayProgress.taskStates,
+            [buildId]: { status: "pass", completedAt: now },
+          },
+        },
+      };
+    });
+  }, [day]);
+
   const getPassCriterionState = useCallback((criterionId: string): boolean => {
     if (!day) return false;
     return dayProgressById[day.id]?.passCriteria[criterionId] ?? false;
@@ -171,6 +374,28 @@ export function useLearningProgress() {
       };
     });
   }, [day]);
+
+  const recordStudySession = useCallback((session: StudySession) => {
+    if (!session.relatedDayId) return;
+    const sessionDay = getLearningDayById(session.relatedDayId);
+    if (!sessionDay) return;
+    const category = session.type.toLowerCase() as StudyCategory;
+    const minutes = Math.max(1, Math.ceil(session.duration / 60));
+
+    setDayProgressById((current) => {
+      const currentDayProgress = mergeDayProgress(sessionDay, current[sessionDay.id]);
+      return {
+        ...current,
+        [sessionDay.id]: {
+          ...currentDayProgress,
+          studyTime: {
+            ...currentDayProgress.studyTime,
+            [category]: currentDayProgress.studyTime[category] + minutes,
+          },
+        },
+      };
+    });
+  }, []);
 
   const selectDay = useCallback((dayNumber: number) => {
     const selectedDay = getLearningDay(currentWeek, dayNumber);
@@ -215,15 +440,23 @@ export function useLearningProgress() {
     currentDay,
     days: dayProgressById,
   };
+  const currentDayProgress = day
+    ? mergeDayProgress(day, dayProgressById[day.id])
+    : undefined;
 
   return {
     availableDays,
     canGoNext: nextDay !== undefined,
     canGoPrevious: previousDay !== undefined,
+    completeBuildTask,
     currentDay,
     currentLearningDay: day,
+    currentDayProgress,
     currentWeek,
+    getBuildVerification,
     getPassCriterionState,
+    getResourceProgress,
+    getSoftwareStatus,
     getTaskStatus,
     goToNextDay: () => {
       if (nextDay) setCurrentDay(nextDay.day);
@@ -232,12 +465,17 @@ export function useLearningProgress() {
       if (previousDay) setCurrentDay(previousDay.day);
     },
     learningProgress,
+    markResourceOpened,
+    recordStudySession,
     replaceAppData,
     resetProgress,
     selectDay,
     studyTime,
+    setResourceCompleted,
     togglePassCriterion,
     updateStudyTime,
+    updateBuildVerification,
+    updateSoftwareStatus,
     updateTaskStatus,
   };
 }
