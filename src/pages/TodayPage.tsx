@@ -409,7 +409,7 @@ export function TodayPage({
 
   return (
     <AppShell activePage="today">
-      <header className="page-header">
+      <header className="page-header today-page-header">
         <div>
           <p className="eyebrow">{stageCode} · {day.stage.title.toUpperCase()}</p>
           <p className="day-code">{weekCode} / {dayCode}</p>

@@ -47,6 +47,10 @@ function learningLevelLabel(level: LearningProjectLevel): string {
   return level.toUpperCase();
 }
 
+function portfolioMetadataLabel(value: string | undefined, fallback: string): string {
+  return value?.replaceAll("_", " ").toUpperCase() ?? fallback;
+}
+
 function draftFromProject(project: ProjectRecord): ProjectDraft {
   return {
     completedDate: project.completedDate ?? "",
@@ -148,8 +152,13 @@ export function ProjectsPage() {
           <strong>{learningProjects.length}</strong>
         </header>
         <div className="learning-project-list">
-          {learningProjects.map((project) => (
-            <article className="learning-project-card" key={project.id}>
+          {learningProjects.map((project) => {
+            const staticRepository = repositoryHref(project.repositoryUrl ?? project.githubUrl);
+            return (
+            <article
+              className={`learning-project-card${project.completionStatus === "portfolio_ready" ? " portfolio-ready" : ""}`}
+              key={project.id}
+            >
               <header>
                 <div>
                   <div className="learning-project-badges">
@@ -187,6 +196,43 @@ export function ProjectsPage() {
                 </div>
               </div>
 
+              <dl className="learning-project-portfolio-status">
+                <div>
+                  <dt>REPOSITORY</dt>
+                  <dd>
+                    {staticRepository ? (
+                      <a href={staticRepository} rel="noreferrer" target="_blank">LINKED ↗</a>
+                    ) : "NOT LINKED"}
+                  </dd>
+                </div>
+                <div>
+                  <dt>README</dt>
+                  <dd>{portfolioMetadataLabel(project.readmeStatus, "NOT STARTED")}</dd>
+                </div>
+                <div>
+                  <dt>PORTFOLIO</dt>
+                  <dd className={`portfolio-readiness readiness-${project.completionStatus ?? "not_ready"}`}>
+                    {portfolioMetadataLabel(project.completionStatus, "NOT READY")}
+                  </dd>
+                </div>
+              </dl>
+
+              <div className="learning-project-outputs">
+                <span>EXPECTED GITHUB OUTPUTS</span>
+                {project.expectedOutputs && project.expectedOutputs.length > 0 ? (
+                  <ul>
+                    {project.expectedOutputs.map((output) => <li key={output}>{output}</li>)}
+                  </ul>
+                ) : <p>OUTPUT DEFINITION PENDING</p>}
+              </div>
+
+              {project.portfolioNotes && (
+                <div className="learning-project-portfolio-notes">
+                  <span>README EXPECTATION</span>
+                  <p>{project.portfolioNotes}</p>
+                </div>
+              )}
+
               <div className="learning-project-milestones">
                 <span>MILESTONES</span>
                 <ul>
@@ -196,7 +242,8 @@ export function ProjectsPage() {
                 </ul>
               </div>
             </article>
-          ))}
+            );
+          })}
         </div>
       </section>
 

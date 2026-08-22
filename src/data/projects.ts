@@ -10,6 +10,9 @@ export const projects: readonly Project[] = [
     specification: "实现AND、OR、XOR、MUX、Decoder、Encoder与同步Counter；模块端口清晰、可独立编译，并为关键输入组合提供自检查测试。",
     level: "basic",
     status: "todo",
+    readmeStatus: "not_started",
+    completionStatus: "not_ready",
+    portfolioNotes: "GitHub仓库应按rtl、tb与scripts组织；README需说明模块清单、运行命令、关键仿真结果和已验证的真值表。",
     skills: ["Digital Logic", "Verilog"],
     relatedRoadmapId: "roadmap-week01-build-basic-logic-library",
     relatedRoadmapIds: [
@@ -51,6 +54,9 @@ export const projects: readonly Project[] = [
     specification: "实现并验证可配置波特率的UART Transmitter与Receiver，采用8N1帧格式，检查空闲、起始位、8位数据、停止位以及连续传输。",
     level: "intermediate",
     status: "todo",
+    readmeStatus: "not_started",
+    completionStatus: "not_ready",
+    portfolioNotes: "GitHub仓库应包含UART RTL、SystemVerilog验证环境、可重复运行脚本与回归摘要；README需说明帧格式、环境架构和典型波形。",
     skills: ["Verilog", "SystemVerilog", "Testbench"],
     relatedRoadmapId: "roadmap-week03-build-uart-verification-environment",
     relatedRoadmapIds: [
@@ -96,6 +102,9 @@ export const projects: readonly Project[] = [
     specification: "验证参数化同步FIFO的数据顺序、容量、full/empty标志、同时读写、复位以及overflow/underflow保护。",
     level: "intermediate",
     status: "todo",
+    readmeStatus: "not_started",
+    completionStatus: "not_ready",
+    portfolioNotes: "GitHub仓库应包含FIFO DUT、Testbench、Assertions、Coverage与Regression结果；README需说明规格、边界场景、缺陷和验证收敛证据。",
     skills: ["SystemVerilog", "Coverage", "Debug"],
     relatedRoadmapId: "roadmap-week04-build-fifo-rtl-testbench",
     relatedRoadmapIds: [
@@ -144,6 +153,9 @@ export const projects: readonly Project[] = [
     specification: "验证APB Slave的setup/access阶段、读写传输、PREADY等待状态、PSLVERR错误响应、复位和背靠背访问。",
     level: "advanced",
     status: "todo",
+    readmeStatus: "not_started",
+    completionStatus: "not_ready",
+    portfolioNotes: "GitHub仓库应提供可复用APB UVM agent、测试序列、Assertions与报告；README需说明协议时序、UVM架构、运行方法和Coverage Closure。",
     skills: ["UVM", "APB", "Scoreboard"],
     relatedRoadmapId: "stage04",
     relatedRoadmapIds: [
@@ -191,6 +203,9 @@ export const projects: readonly Project[] = [
     specification: "验证AXI4-Lite Slave的AW、W、B、AR、R五个通道，覆盖地址与数据不同步到达、backpressure、响应错误、复位和背靠背事务。",
     level: "advanced",
     status: "todo",
+    readmeStatus: "not_started",
+    completionStatus: "not_ready",
+    portfolioNotes: "GitHub仓库应包含AXI-Lite五通道验证组件、Backpressure测试和协议检查；README需解释通道配对、架构、执行方式与结果。",
     skills: ["SystemVerilog", "UVM", "AXI", "Assertions", "Coverage"],
     relatedRoadmapId: "roadmap-week19-build-axi-lite-monitor",
     relatedRoadmapIds: [
@@ -237,6 +252,9 @@ export const projects: readonly Project[] = [
     specification: "为包含RW、RO、W1C和保留字段的寄存器块建立UVM RAL模型，通过adapter和predictor连接总线agent，并验证reset、bit-bash、frontdoor与backdoor访问。",
     level: "advanced",
     status: "todo",
+    readmeStatus: "not_started",
+    completionStatus: "not_ready",
+    portfolioNotes: "GitHub仓库应包含RAL模型、adapter、predictor和寄存器测试；README需说明地址映射、访问策略、运行命令和Mirror检查结果。",
     skills: ["SystemVerilog", "UVM", "RAL", "Register Verification", "Scoreboard"],
     relatedRoadmapId: "roadmap-week16-build-apb-uvm-environment",
     relatedRoadmapIds: [
@@ -284,6 +302,9 @@ export const projects: readonly Project[] = [
     specification: "验证独立读写时钟下的异步FIFO，检查Gray-coded指针同步、full/empty生成、复位释放、频率比变化、数据顺序以及overflow/underflow保护。",
     level: "advanced",
     status: "todo",
+    readmeStatus: "not_started",
+    completionStatus: "not_ready",
+    portfolioNotes: "GitHub仓库应包含异步FIFO、双时钟验证环境、CDC Assertions与回归证据；README需说明Gray指针、时钟场景和CDC检查结论。",
     skills: ["Verilog", "SystemVerilog", "CDC", "Assertions", "Debug"],
     relatedRoadmapId: "roadmap-week04-build-fifo-rtl-testbench",
     relatedRoadmapIds: [
